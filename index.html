@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bụi Coffee - Quản lý Bán hàng</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo" id="headerLogo">
+        <!-- Coffee SVG injected via JS -->
+      </div>
+      <div class="brand-info">
+        <h1>Bụi Coffee</h1>
+        <p>Hệ thống 50 Bàn phục vụ</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="wifi-pill" title="Mật khẩu Wifi của quán">
+        <span id="wifiIcon"></span>
+        <span>Pass: 68686868</span>
+      </div>
+      <button class="btn-secondary" id="btnOpenSettings" style="height: 32px; padding: 0 8px;" title="Cài đặt & Sao lưu">
+        <span id="settingsIcon"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container Views -->
+  <main class="main-container">
+
+    <!-- VIEW 1: SƠ ĐỒ 50 BÀN -->
+    <section id="viewTables" class="view-section active">
+      <div class="table-filter-bar">
+        <div class="filter-btn-group">
+          <button class="filter-chip active" data-filter="all">Tất cả (50)</button>
+          <button class="filter-chip" data-filter="occupied">Có khách (<span id="occupiedCount">0</span>)</button>
+          <button class="filter-chip" data-filter="empty">Trống (<span id="emptyCount">50</span>)</button>
+        </div>
+        <div class="table-stats-badge" id="tablesTotalRevenueBadge">
+          Tạm tính: 0đ
+        </div>
+      </div>
+
+      <!-- Lưới 50 bàn -->
+      <div class="tables-grid" id="tablesGridContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 2: GỌI MÓN & TÌM KIẾM NHANH MENU -->
+    <section id="viewMenu" class="view-section">
+      <!-- Banner thông báo bàn đang gọi món -->
+      <div class="active-table-banner">
+        <div class="active-table-label">
+          <span id="activeTableIcon"></span>
+          <span id="activeTableTitle">Đang phục vụ: Bàn 01</span>
+        </div>
+        <button class="btn-change-table" id="btnQuickSwitchTable">Đổi bàn</button>
+      </div>
+
+      <!-- Ô tìm kiếm tức thì -->
+      <div class="search-container">
+        <span class="search-icon-left" id="searchIcon"></span>
+        <input type="text" id="menuSearchInput" class="search-input" placeholder="Tìm nhanh tên món (vd: bac xiu, tra dao...)" autocomplete="off">
+        <button type="button" id="searchClearBtn" class="search-clear-btn" title="Xóa tìm kiếm"></button>
+      </div>
+
+      <!-- Thanh cuộn danh mục ngang -->
+      <div class="category-scroll" id="categoryScrollContainer">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Danh sách món ăn/uống -->
+      <div class="menu-grid" id="menuGridContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: CHI TIẾT ĐƠN HÀNG CỦA BÀN ĐANG CHỌN -->
+    <section id="viewCurrentOrder" class="view-section">
+      <div class="active-table-banner">
+        <div class="active-table-label">
+          <span id="currentOrderTableIcon"></span>
+          <span id="currentOrderTableTitle">Chi tiết Bàn 01</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn-secondary" id="btnTransferTableModal" style="height: 32px; font-size: 11px; padding: 0 8px;">Chuyển bàn</button>
+          <button class="btn-danger" id="btnClearTableBtn" style="height: 32px; font-size: 11px; padding: 0 8px;">Xóa bàn</button>
+        </div>
+      </div>
+
+      <div id="orderEmptyState" style="text-align: center; padding: 40px 20px; display: none;">
+        <p class="text-muted" style="margin-bottom: 12px;">Bàn này hiện chưa có món nào được gọi.</p>
+        <button class="btn-primary" id="btnGoToMenu" style="display: inline-flex; max-width: 180px; margin: 0 auto;">Gọi món ngay</button>
+      </div>
+
+      <div id="orderItemsContainer" style="background: #fff; border-radius: var(--radius-md); padding: 8px 14px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+        <!-- Danh sách món gọi -->
+      </div>
+
+      <!-- Tổng tiền và nút thanh toán -->
+      <div id="orderSummaryBox" style="background: #fff; border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <span style="font-size: 15px; font-weight: 600;">Tổng tạm tính:</span>
+          <span id="orderSummaryTotal" style="font-size: 20px; font-weight: 800; color: var(--primary);">0đ</span>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" id="btnOrderMore" style="flex: 1;">
+            <span id="orderMoreIcon"></span>
+            <span>Thêm món</span>
+          </button>
+          <button class="btn-primary" id="btnOpenCheckout" style="flex: 1.5;">
+            <span id="checkoutIcon"></span>
+            <span>Thanh toán</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: BÁO CÁO & LỊCH SỬ DOANH THU -->
+    <section id="viewReports" class="view-section">
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-card-title">Doanh thu hôm nay</div>
+          <div class="stat-card-value" id="statTodayRevenue">0đ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Đơn đã thanh toán</div>
+          <div class="stat-card-value" id="statTodayOrders">0</div>
+        </div>
+      </div>
+
+      <div style="background: #fff; border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-color); margin-bottom: 14px;">
+        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">Top món bán chạy</h3>
+        <div id="topItemsList">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <div style="background: #fff; border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-color);">
+        <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">Lịch sử hóa đơn gần đây</h3>
+        <div id="invoicesHistoryList">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="viewTables" id="navBtnTables">
+      <span id="navTablesIcon"></span>
+      <span>50 Bàn</span>
+    </button>
+    <button class="nav-item" data-view="viewMenu" id="navBtnMenu">
+      <span id="navMenuIcon"></span>
+      <span>Thực đơn</span>
+    </button>
+    <button class="nav-item" data-view="viewCurrentOrder" id="navBtnOrder">
+      <span id="navOrderIcon"></span>
+      <span>Đơn hàng</span>
+      <span class="nav-badge" id="navOrderBadge" style="display: none;">0</span>
+    </button>
+    <button class="nav-item" data-view="viewReports" id="navBtnReports">
+      <span id="navReportsIcon"></span>
+      <span>Báo cáo</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: THANH TOÁN -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="checkoutModalTitle">Thanh toán Bàn 01</div>
+        <button class="modal-close-btn" id="btnCloseCheckoutModal"></button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: var(--text-muted);">Tổng số tiền cần thanh toán</div>
+          <div id="checkoutTotalAmount" style="font-size: 26px; font-weight: 800; color: var(--primary);">0đ</div>
+        </div>
+
+        <!-- Phương thức thanh toán -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button class="filter-chip active" id="btnPayMethodCash" style="flex: 1; text-align: center; padding: 10px;">Tiền mặt</button>
+          <button class="filter-chip" id="btnPayMethodQR" style="flex: 1; text-align: center; padding: 10px;">Chuyển khoản QR</button>
+        </div>
+
+        <!-- Thanh toán tiền mặt -->
+        <div id="cashPaymentBox">
+          <label style="font-size: 12px; font-weight: 600; margin-bottom: 6px; display: block;">Tiền khách đưa:</label>
+          <input type="number" id="customerCashInput" class="search-input" placeholder="Nhập số tiền..." style="padding-left: 14px; margin-bottom: 8px;">
+          <div style="display: flex; gap: 6px; margin-bottom: 12px;" id="quickCashButtons">
+            <!-- Gợi ý tiền mặt: Đúng số tiền, 50k, 100k, 200k, 500k -->
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm);">
+            <span>Tiền thừa trả khách:</span>
+            <span id="changeAmountText" style="color: var(--primary);">0đ</span>
+          </div>
+        </div>
+
+        <!-- Thanh toán mã QR -->
+        <div id="qrPaymentBox" style="display: none; text-align: center; padding: 10px;">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Quét mã VietQR để thanh toán đúng số tiền:</p>
+          <div id="vietQrImgContainer" style="background: #fff; padding: 12px; border-radius: var(--radius-md); display: inline-block; border: 1px solid var(--border-color);">
+            <!-- Image QR generated dynamically -->
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Nội dung: <b id="qrTransferNote">Bui Coffee B01</b></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btnConfirmPayment">Xác nhận thanh toán & In bill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HÓA ĐƠN IN (RECEIPT) -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Hóa đơn Bụi Coffee</div>
+        <button class="modal-close-btn" id="btnCloseReceiptModal"></button>
+      </div>
+      <div class="modal-body" id="receiptPrintArea">
+        <div class="receipt-paper" id="receiptContent">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btnPrintReceiptBtn">
+          <span id="printIcon"></span>
+          <span>In hóa đơn</span>
+        </button>
+        <button class="btn-primary" id="btnFinishReceiptBtn">Hoàn tất</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CHUYỂN BÀN -->
+  <div class="modal-overlay" id="transferModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="transferModalTitle">Chuyển / Gộp Bàn</div>
+        <button class="modal-close-btn" id="btnCloseTransferModal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Chọn bàn đích muốn chuyển hoặc gộp đến:</p>
+        <div class="tables-grid" id="transferTablesGrid" style="max-height: 50vh; overflow-y: auto;">
+          <!-- 50 bàn chọn đích -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GHI CHÚ MÓN (ÍT ĐƯỜNG, NHIỀU ĐÁ...) -->
+  <div class="modal-overlay" id="itemNoteModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="itemNoteTitle">Ghi chú món</div>
+        <button class="modal-close-btn" id="btnCloseNoteModal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="itemCustomNoteInput" class="search-input" placeholder="Nhập ghi chú riêng..." style="padding-left: 14px;">
+        <div class="quick-notes-list">
+          <span class="quick-note-tag" data-note="Ít đường">Ít đường</span>
+          <span class="quick-note-tag" data-note="Không đường">Không đường</span>
+          <span class="quick-note-tag" data-note="Ít đá">Ít đá</span>
+          <span class="quick-note-tag" data-note="Nhiều đá">Nhiều đá</span>
+          <span class="quick-note-tag" data-note="Không đá">Không đá</span>
+          <span class="quick-note-tag" data-note="Uống nóng">Uống nóng</span>
+          <span class="quick-note-tag" data-note="Ít ngọt">Ít ngọt</span>
+          <span class="quick-note-tag" data-note="Mang về">Mang về</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btnSaveItemNote">Lưu ghi chú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CÀI ĐẶT & SAO LƯU DỮ LIỆU -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Cài đặt & Dữ liệu</div>
+        <button class="modal-close-btn" id="btnCloseSettingsModal"></button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-md);">
+          <div style="font-weight: 700; margin-bottom: 4px;">Thông tin quán</div>
+          <div style="font-size: 13px;">Tên quán: <b>Bụi Coffee</b></div>
+          <div style="font-size: 13px;">Wifi Pass: <b>68686868</b></div>
+          <div style="font-size: 13px;">Quy mô: <b>50 bàn</b></div>
+        </div>
+
+        <div>
+          <label style="font-size: 13px; font-weight: 700; margin-bottom: 6px; display: block;">Sao lưu & Khôi phục dữ liệu:</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button class="btn-secondary" id="btnExportData" style="flex: 1;">
+              <span id="exportIcon"></span>
+              <span>Xuất JSON</span>
+            </button>
+            <label class="btn-secondary" style="flex: 1; margin: 0; cursor: pointer;">
+              <span id="importIcon"></span>
+              <span>Nhập JSON</span>
+              <input type="file" id="fileImportInput" accept=".json" style="display: none;">
+            </label>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted);">Xuất file dự phòng về điện thoại để không lo mất số liệu khi đổi máy hoặc xóa bộ nhớ duyệt web.</p>
+        </div>
+
+        <div style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <button class="btn-danger" id="btnResetAllData" style="width: 100%;">Khôi phục toàn bộ cài đặt gốc</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
