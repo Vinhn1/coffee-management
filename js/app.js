@@ -32,6 +32,9 @@ class CoffeeApp {
     this.editingNoteItem = null; // { itemId, currentNote }
     this.paymentMethod = "cash";
     this.customItemQty = 1;
+    this.currentWeekMonday = this.getMonday(new Date());
+    this.editingCustomShiftDate = null;
+    this.editingCustomShiftDayName = "";
 
     this.initIcons();
     this.initNavigation();
@@ -85,6 +88,21 @@ class CoffeeApp {
     document.getElementById("navMenuIcon").innerHTML = ICONS.menu;
     document.getElementById("navOrderIcon").innerHTML = ICONS.receipt;
     document.getElementById("navReportsIcon").innerHTML = ICONS.chart;
+
+    const navTimekeepingIconEl = document.getElementById("navTimekeepingIcon");
+    if (navTimekeepingIconEl) navTimekeepingIconEl.innerHTML = ICONS.calendar || ICONS.receipt;
+
+    const prevWeekIconEl = document.getElementById("prevWeekIcon");
+    if (prevWeekIconEl) prevWeekIconEl.innerHTML = ICONS.chevronLeft;
+
+    const nextWeekIconEl = document.getElementById("nextWeekIcon");
+    if (nextWeekIconEl) nextWeekIconEl.innerHTML = ICONS.chevronRight;
+
+    const copySalaryIconEl = document.getElementById("copySalaryIcon");
+    if (copySalaryIconEl) copySalaryIconEl.innerHTML = ICONS.copy;
+
+    const btnCloseCustomShift = document.getElementById("btnCloseCustomShiftModal");
+    if (btnCloseCustomShift) btnCloseCustomShift.innerHTML = ICONS.close;
   }
 
   // Khởi tạo danh mục cho ô chọn trong cài đặt
@@ -121,6 +139,7 @@ class CoffeeApp {
     if (viewId === "viewMenu") this.renderMenu();
     if (viewId === "viewCurrentOrder") this.renderCurrentOrder();
     if (viewId === "viewReports") this.renderReports();
+    if (viewId === "viewTimekeeping") this.renderTimekeeping();
   }
 
   // Thanh cuộn danh mục
@@ -351,17 +370,14 @@ class CoffeeApp {
         const nameInput = document.getElementById("customItemNameInput");
         const priceInput = document.getElementById("customItemPriceInput");
         const noteInput = document.getElementById("customItemNoteInput");
-        const name = nameInput.value.trim();
+        let name = nameInput.value.trim();
+        if (!name) {
+          name = "Phụ thu"; // Không bắt buộc nhập tên khi đang cần cộng tiền gấp
+        }
         const price = Number(priceInput.value);
 
-        if (!name) {
-          alert("Vui lòng nhập tên món hoặc nội dung khoản thu.");
-          nameInput.focus();
-          return;
-        }
-
         if (priceInput.value.trim() === "" || isNaN(price) || price < 0) {
-          alert("Vui lòng nhập đơn giá hợp lệ.");
+          alert("Vui lòng nhập số tiền cần cộng.");
           priceInput.focus();
           return;
         }
@@ -487,6 +503,102 @@ class CoffeeApp {
         alert("Đã đặt lại dữ liệu mặc định thành công.");
       }
     });
+
+    // CÁC SỰ KIỆN CHẤM CÔNG & TÍNH TIỀN LƯƠNG
+    const btnPrevWeek = document.getElementById("btnPrevWeek");
+    if (btnPrevWeek) {
+      btnPrevWeek.addEventListener("click", () => {
+        this.changeWeek(-1);
+      });
+    }
+
+    const btnNextWeek = document.getElementById("btnNextWeek");
+    if (btnNextWeek) {
+      btnNextWeek.addEventListener("click", () => {
+        this.changeWeek(1);
+      });
+    }
+
+    const btnGoToCurrentWeek = document.getElementById("btnGoToCurrentWeek");
+    if (btnGoToCurrentWeek) {
+      btnGoToCurrentWeek.addEventListener("click", () => {
+        this.currentWeekMonday = this.getMonday(new Date());
+        this.renderTimekeeping();
+      });
+    }
+
+    const btnResetWeekShifts = document.getElementById("btnResetWeekShifts");
+    if (btnResetWeekShifts) {
+      btnResetWeekShifts.addEventListener("click", () => {
+        const weekKey = this.getWeekKey(this.currentWeekMonday);
+        if (confirm("Bạn có chắc muốn đặt lại toàn bộ chấm công của tuần này?")) {
+          store.clearTimekeepingWeek(weekKey);
+          this.renderTimekeeping();
+        }
+      });
+    }
+
+    const btnCopySalaryReport = document.getElementById("btnCopySalaryReport");
+    if (btnCopySalaryReport) {
+      btnCopySalaryReport.addEventListener("click", () => {
+        this.copySalaryReport();
+      });
+    }
+
+    const btnCloseCustomShift = document.getElementById("btnCloseCustomShiftModal");
+    if (btnCloseCustomShift) {
+      btnCloseCustomShift.addEventListener("click", () => {
+        this.closeModal("customShiftModal");
+      });
+    }
+
+    // Nút lưu giờ làm tùy chỉnh (đi sớm, tăng ca)
+    const btnSaveCustomShift = document.getElementById("btnSaveCustomShift");
+    if (btnSaveCustomShift) {
+      btnSaveCustomShift.addEventListener("click", () => {
+        const labelInput = document.getElementById("customShiftTimeLabelInput");
+        const hoursInput = document.getElementById("customShiftHoursInput");
+        const hours = Number(hoursInput.value);
+
+        if (!hours || isNaN(hours) || hours <= 0) {
+          alert("Vui lòng nhập số giờ làm việc hợp lệ (ví dụ: 0.5 hoặc 1.0).");
+          hoursInput.focus();
+          return;
+        }
+
+        const timeLabel = labelInput.value.trim() || `${hours}h`;
+        const weekKey = this.getWeekKey(this.currentWeekMonday);
+
+        store.addCustomShift(weekKey, this.editingCustomShiftDate, {
+          timeLabel,
+          hours
+        });
+
+        this.closeModal("customShiftModal");
+        this.renderTimekeeping();
+      });
+    }
+
+    // Chọn nhanh mẫu khoảng thời gian tùy chỉnh
+    document.querySelectorAll(".quick-custom-shift-tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        const label = tag.getAttribute("data-label");
+        const hours = tag.getAttribute("data-hours");
+        const labelInput = document.getElementById("customShiftTimeLabelInput");
+        const hoursInput = document.getElementById("customShiftHoursInput");
+        if (labelInput) labelInput.value = label;
+        if (hoursInput) hoursInput.value = hours;
+      });
+    });
+
+    // Chọn nhanh số giờ làm
+    document.querySelectorAll(".btn-quick-shift-hour").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-val");
+        const hoursInput = document.getElementById("customShiftHoursInput");
+        if (hoursInput) hoursInput.value = val;
+      });
+    });
   }
 
   // Render toàn bộ ứng dụng
@@ -495,6 +607,7 @@ class CoffeeApp {
     this.renderMenu();
     this.renderCurrentOrder();
     this.renderReports();
+    this.renderTimekeeping();
     this.updateBadges();
   }
 
@@ -1152,6 +1265,267 @@ class CoffeeApp {
     };
     reader.readAsText(file);
     event.target.value = "";
+  }
+
+  // CHỨC NĂNG CHẤM CÔNG & TÍNH TIỀN LƯƠNG
+  getMonday(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+
+  getWeekDates(monday) {
+    const dayNames = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    const dates = [];
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const year = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dayNum = String(d.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${m}-${dayNum}`;
+      const dayName = dayNames[i];
+      const dateFormatted = `${d.getDate()}/${d.getMonth() + 1}`;
+      dates.push({
+        dateStr,
+        dayName,
+        dateFormatted,
+        fullDateLabel: `${dayName}, ${dateFormatted}`,
+        isToday: dateStr === todayStr
+      });
+    }
+    return dates;
+  }
+
+  getWeekKey(monday) {
+    const year = monday.getFullYear();
+    const m = String(monday.getMonth() + 1).padStart(2, "0");
+    const d = String(monday.getDate()).padStart(2, "0");
+    return `${year}-W${m}-${d}`;
+  }
+
+  formatWeekRangeText(monday) {
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return `${monday.getDate()}/${monday.getMonth() + 1} - ${sunday.getDate()}/${sunday.getMonth() + 1}/${sunday.getFullYear()}`;
+  }
+
+  changeWeek(delta) {
+    const newMonday = new Date(this.currentWeekMonday);
+    newMonday.setDate(newMonday.getDate() + delta * 7);
+    this.currentWeekMonday = newMonday;
+    this.renderTimekeeping();
+  }
+
+  renderTimekeeping() {
+    const container = document.getElementById("weekDaysContainer");
+    if (!container) return;
+
+    const weekKey = this.getWeekKey(this.currentWeekMonday);
+    const weekDates = this.getWeekDates(this.currentWeekMonday);
+    const weekData = store.getTimekeepingWeek(weekKey);
+    const calc = store.calculateSalary(weekKey, weekDates);
+
+    // Cập nhật tiêu đề tuần
+    const weekRangeTitle = document.getElementById("weekRangeTitle");
+    if (weekRangeTitle) weekRangeTitle.textContent = this.formatWeekRangeText(this.currentWeekMonday);
+
+    const currentWeekMonday = this.getMonday(new Date());
+    const isCurrentWeek = this.currentWeekMonday.getTime() === currentWeekMonday.getTime();
+    const weekSubTitle = document.getElementById("weekSubTitle");
+    if (weekSubTitle) weekSubTitle.textContent = isCurrentWeek ? "Tuần hiện tại (Thời gian thực)" : "Lịch sử tuần";
+
+    // Cập nhật thẻ tóm tắt lương
+    const salaryTotalAmount = document.getElementById("salaryTotalAmount");
+    if (salaryTotalAmount) salaryTotalAmount.textContent = formatMoney(calc.finalSalary);
+
+    const salaryRateBadge = document.getElementById("salaryRateBadge");
+    if (salaryRateBadge) {
+      salaryRateBadge.textContent = calc.ratePerHour === 20000 ? "20k/h (>= 4 ca)" : "16k/h (<= 3 ca)";
+      if (calc.totalShifts >= 4) {
+        salaryRateBadge.style.background = "#dcfce7";
+        salaryRateBadge.style.color = "#166534";
+      } else {
+        salaryRateBadge.style.background = "#e0e7ff";
+        salaryRateBadge.style.color = "#3730a3";
+      }
+    }
+
+    const statWeekShifts = document.getElementById("statWeekShifts");
+    if (statWeekShifts) statWeekShifts.textContent = `${calc.totalShifts} ca`;
+
+    const statWeekHours = document.getElementById("statWeekHours");
+    if (statWeekHours) statWeekHours.textContent = `${(calc.totalHours + "").replace(".", ",")}h`;
+
+    const statWeekBonus = document.getElementById("statWeekBonus");
+    if (statWeekBonus) statWeekBonus.textContent = calc.bonus > 0 ? formatMoney(calc.bonus) : "0đ";
+
+    // Render danh sách 7 ngày trong tuần
+    container.innerHTML = weekDates.map((d, index) => {
+      const dayData = weekData.days[d.dateStr] || { morning: false, afternoon: false, evening: false, holidayMultiplier: 1, customShifts: [] };
+      const mult = Number(dayData.holidayMultiplier) || 1;
+      const dayDetail = calc.dayDetails.find(detail => detail.dateStr === d.dateStr);
+      const customShifts = Array.isArray(dayData.customShifts) ? dayData.customShifts : [];
+
+      return `
+        <div class="day-card ${d.isToday ? "today" : ""}">
+          <div class="day-header">
+            <div class="day-title-box">
+              <span class="day-name-tag">${d.fullDateLabel}</span>
+              ${d.isToday ? `<span class="today-pill">Hôm nay</span>` : ""}
+            </div>
+            <div>
+              <select class="day-mult-select holiday-multiplier-select" data-date="${d.dateStr}">
+                <option value="1" ${mult === 1 ? "selected" : ""}>Ngày thường (x1)</option>
+                <option value="2" ${mult === 2 ? "selected" : ""}>Ngày lễ (x2)</option>
+                <option value="3" ${mult === 3 ? "selected" : ""}>Đại lễ (x3)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="shifts-grid">
+            <button class="shift-btn ${dayData.morning ? "active" : ""}" data-date="${d.dateStr}" data-shift="morning">
+              <span class="shift-btn-name">Ca sáng</span>
+              <span class="shift-btn-time">5h30 - 11h</span>
+              <span class="shift-btn-hours">5.5h</span>
+            </button>
+            <button class="shift-btn ${dayData.afternoon ? "active" : ""}" data-date="${d.dateStr}" data-shift="afternoon">
+              <span class="shift-btn-name">Ca trưa</span>
+              <span class="shift-btn-time">11h - 17h</span>
+              <span class="shift-btn-hours">6.0h</span>
+            </button>
+            <button class="shift-btn ${dayData.evening ? "active" : ""}" data-date="${d.dateStr}" data-shift="evening">
+              <span class="shift-btn-name">Ca tối</span>
+              <span class="shift-btn-time">16h30 - 23h</span>
+              <span class="shift-btn-hours">6.5h</span>
+            </button>
+          </div>
+
+          <div class="custom-shifts-wrap">
+            ${customShifts.map(cs => `
+              <span class="custom-shift-pill">
+                <span>${cs.timeLabel} (${(cs.hours + "").replace(".", ",")}h)</span>
+                <button class="btn-del-custom-shift" data-date="${d.dateStr}" data-id="${cs.id}" title="Xóa khoảng giờ này">&times;</button>
+              </span>
+            `).join("")}
+            <button class="btn-add-custom-shift" data-date="${d.dateStr}" data-day="${d.dayName}" data-formatted="${d.dateFormatted}">
+              ${ICONS.plus} Đi sớm / giờ khác
+            </button>
+          </div>
+
+          ${dayDetail && dayDetail.shifts.length > 0 ? `
+            <div class="day-subtotal-text">
+              Tổng ngày: <b>${(dayDetail.totalDayHours + "").replace(".", ",")}h</b> (${dayDetail.shifts.length} ca/khoảng làm)
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }).join("");
+
+    // Gắn sự kiện click chọn ca làm
+    container.querySelectorAll(".shift-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dateStr = btn.getAttribute("data-date");
+        const shiftKey = btn.getAttribute("data-shift");
+        store.toggleShift(weekKey, dateStr, shiftKey);
+        this.renderTimekeeping();
+      });
+    });
+
+    // Gắn sự kiện chọn hệ số ngày lễ
+    container.querySelectorAll(".holiday-multiplier-select").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const dateStr = sel.getAttribute("data-date");
+        store.setHolidayMultiplier(weekKey, dateStr, e.target.value);
+        this.renderTimekeeping();
+      });
+    });
+
+    // Gắn sự kiện mở modal thêm giờ tùy chỉnh
+    container.querySelectorAll(".btn-add-custom-shift").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dateStr = btn.getAttribute("data-date");
+        const dayName = btn.getAttribute("data-day");
+        const formatted = btn.getAttribute("data-formatted");
+        this.openCustomShiftModal(dateStr, dayName, formatted);
+      });
+    });
+
+    // Gắn sự kiện xóa giờ tùy chỉnh
+    container.querySelectorAll(".btn-del-custom-shift").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dateStr = btn.getAttribute("data-date");
+        const id = btn.getAttribute("data-id");
+        store.removeCustomShift(weekKey, dateStr, id);
+        this.renderTimekeeping();
+      });
+    });
+
+    // Cập nhật khung mẫu văn bản tính lương
+    const salaryReportText = document.getElementById("salaryReportText");
+    if (salaryReportText) {
+      salaryReportText.textContent = store.formatSalaryReport(weekKey, weekDates);
+    }
+  }
+
+  openCustomShiftModal(dateStr, dayName, dateFormatted) {
+    this.editingCustomShiftDate = dateStr;
+    this.editingCustomShiftDayName = dayName;
+
+    const titleEl = document.getElementById("customShiftModalTitle");
+    if (titleEl) titleEl.textContent = `Thêm giờ làm ${dayName} (${dateFormatted})`;
+
+    const labelInput = document.getElementById("customShiftTimeLabelInput");
+    const hoursInput = document.getElementById("customShiftHoursInput");
+    if (labelInput) labelInput.value = "";
+    if (hoursInput) hoursInput.value = "";
+
+    this.openModal("customShiftModal");
+  }
+
+  copySalaryReport() {
+    const weekKey = this.getWeekKey(this.currentWeekMonday);
+    const weekDates = this.getWeekDates(this.currentWeekMonday);
+    const reportText = store.formatSalaryReport(weekKey, weekDates);
+
+    const textSpan = document.getElementById("copySalaryText");
+    const onCopied = () => {
+      if (textSpan) textSpan.textContent = "Đã sao chép";
+      setTimeout(() => {
+        if (textSpan) textSpan.textContent = "Sao chép mẫu";
+      }, 2000);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(reportText).then(onCopied).catch(() => {
+        this.fallbackCopyText(reportText, onCopied);
+      });
+    } else {
+      this.fallbackCopyText(reportText, onCopied);
+    }
+  }
+
+  fallbackCopyText(text, callback) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      if (callback) callback();
+    } catch (err) {
+      alert("Không thể tự động sao chép. Bạn có thể chọn văn bản và nhấn Copy.");
+    }
+    document.body.removeChild(textArea);
   }
 
   openModal(id) {

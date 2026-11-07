@@ -182,6 +182,73 @@
       </div>
     </section>
 
+    <!-- VIEW 5: CHẤM CÔNG & TÍNH TIỀN LƯƠNG -->
+    <section id="viewTimekeeping" class="view-section">
+      <!-- Thanh chuyển tuần làm việc -->
+      <div class="week-nav-bar">
+        <button class="week-nav-btn" id="btnPrevWeek" title="Tuần trước">
+          <span id="prevWeekIcon"></span>
+        </button>
+        <div class="week-info">
+          <div class="week-title" id="weekRangeTitle">2/11 - 8/11/2026</div>
+          <div class="week-subtitle" id="weekSubTitle">Tuần hiện tại</div>
+        </div>
+        <button class="week-nav-btn" id="btnNextWeek" title="Tuần sau">
+          <span id="nextWeekIcon"></span>
+        </button>
+      </div>
+
+      <!-- Nút thao tác nhanh tuần -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
+        <button class="filter-chip active" id="btnGoToCurrentWeek">Về tuần này</button>
+        <button class="filter-chip" id="btnResetWeekShifts" style="color: var(--danger); border-color: #fecaca;">Đặt lại tuần này</button>
+      </div>
+
+      <!-- Thẻ tổng quan lương tuần -->
+      <div class="salary-summary-card">
+        <div class="salary-card-header">
+          <div>
+            <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Tổng tiền lương tuần:</div>
+            <div class="salary-card-amount" id="salaryTotalAmount">0đ</div>
+          </div>
+          <div class="salary-rate-badge" id="salaryRateBadge">
+            20k/h (>= 4 ca)
+          </div>
+        </div>
+        <div class="salary-card-stats">
+          <div class="salary-stat-col">
+            <span class="salary-stat-label">Số ca làm:</span>
+            <b class="salary-stat-val" id="statWeekShifts">0 ca</b>
+          </div>
+          <div class="salary-stat-col">
+            <span class="salary-stat-label">Tổng giờ:</span>
+            <b class="salary-stat-val" id="statWeekHours">0h</b>
+          </div>
+          <div class="salary-stat-col">
+            <span class="salary-stat-label">Thưởng (>7 ca):</span>
+            <b class="salary-stat-val" id="statWeekBonus">0đ</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danh sách chấm công 7 ngày trong tuần -->
+      <div class="week-days-list" id="weekDaysContainer">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Khung xuất mẫu tính lương văn bản -->
+      <div class="salary-export-box">
+        <div class="salary-export-header">
+          <span style="font-size: 13px; font-weight: 700;">Mẫu tính lương văn bản:</span>
+          <button class="btn-copy-salary" id="btnCopySalaryReport">
+            <span id="copySalaryIcon"></span>
+            <span id="copySalaryText">Sao chép mẫu</span>
+          </button>
+        </div>
+        <pre class="salary-export-content" id="salaryReportText">Đang tính toán...</pre>
+      </div>
+    </section>
+
   </main>
 
   <!-- Bottom Navigation Bar -->
@@ -202,6 +269,10 @@
     <button class="nav-item" data-view="viewReports" id="navBtnReports">
       <span id="navReportsIcon"></span>
       <span>Báo cáo</span>
+    </button>
+    <button class="nav-item" data-view="viewTimekeeping" id="navBtnTimekeeping">
+      <span id="navTimekeepingIcon"></span>
+      <span>Chấm công</span>
     </button>
   </nav>
 
@@ -428,8 +499,8 @@
       </div>
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
         <div>
-          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên món / Khoản thu:</label>
-          <input type="text" id="customItemNameInput" class="search-input" placeholder="Ví dụ: Bánh mì, Khăn lạnh, Phụ thu đồ ngoài..." style="padding-left: 12px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên món / Khoản thu (không bắt buộc, để trống mặc định là Phụ thu):</label>
+          <input type="text" id="customItemNameInput" class="search-input" placeholder="Để trống tự động là 'Phụ thu' (khi cần cộng tiền gấp)..." style="padding-left: 12px;">
           <div class="quick-notes-list" style="margin-top: 6px;">
             <span class="quick-custom-name-tag" data-name="Bánh mì">Bánh mì</span>
             <span class="quick-custom-name-tag" data-name="Bánh tráng">Bánh tráng</span>
@@ -471,6 +542,44 @@
       </div>
       <div class="modal-footer">
         <button class="btn-primary" id="btnConfirmAddCustomItem">Thêm vào bàn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: THÊM GIỜ LÀM TÙY CHỈNH / ĐI SỚM -->
+  <div class="modal-overlay" id="customShiftModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="customShiftModalTitle">Thêm giờ làm tùy chỉnh</div>
+        <button class="modal-close-btn" id="btnCloseCustomShiftModal"></button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Khoảng thời gian (hoặc nội dung):</label>
+          <input type="text" id="customShiftTimeLabelInput" class="search-input" placeholder="Ví dụ: 5h00 - 5h30, Đi sớm 30p..." style="padding-left: 12px;">
+          <div class="quick-notes-list" style="margin-top: 6px;">
+            <span class="quick-custom-shift-tag" data-label="5h00 - 5h30" data-hours="0.5">5h00 - 5h30 (0.5h)</span>
+            <span class="quick-custom-shift-tag" data-label="5h00 - 11h00" data-hours="6">5h00 - 11h00 (6h)</span>
+            <span class="quick-custom-shift-tag" data-label="10h30 - 11h00" data-hours="0.5">10h30 - 11h00 (0.5h)</span>
+            <span class="quick-custom-shift-tag" data-label="16h00 - 16h30" data-hours="0.5">16h00 - 16h30 (0.5h)</span>
+            <span class="quick-custom-shift-tag" data-label="Tăng ca 1 tiếng" data-hours="1">Tăng ca 1 tiếng (1h)</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Số giờ làm việc (h):</label>
+          <input type="number" id="customShiftHoursInput" class="search-input" step="0.5" placeholder="Ví dụ: 0.5 hoặc 1.0" style="padding-left: 12px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+            <button class="filter-chip btn-quick-shift-hour" type="button" data-val="0.5">0.5h (30 phút)</button>
+            <button class="filter-chip btn-quick-shift-hour" type="button" data-val="1">1.0h</button>
+            <button class="filter-chip btn-quick-shift-hour" type="button" data-val="1.5">1.5h</button>
+            <button class="filter-chip btn-quick-shift-hour" type="button" data-val="2">2.0h</button>
+            <button class="filter-chip btn-quick-shift-hour" type="button" data-val="3">3.0h</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btnSaveCustomShift">Lưu giờ làm</button>
       </div>
     </div>
   </div>

@@ -7,6 +7,13 @@ export const SHOP_INFO = {
   currency: "đ"
 };
 
+// Cấu hình các ca làm việc
+export const SHIFT_DEFS = {
+  morning: { id: "morning", name: "Ca sáng", timeLabel: "5h30 - 11h", hours: 5.5 },
+  afternoon: { id: "afternoon", name: "Ca trưa", timeLabel: "11h - 17h", hours: 6.0 },
+  evening: { id: "evening", name: "Ca tối", timeLabel: "16h30 - 23h", hours: 6.5 }
+};
+
 export const CATEGORIES = [
   { id: "all", name: "Tất cả" },
   { id: "coffee", name: "Coffee pha máy" },

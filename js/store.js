@@ -1,4 +1,4 @@
-import { INITIAL_MENU, INITIAL_TABLES, SHOP_INFO } from "./data.js";
+import { INITIAL_MENU, INITIAL_TABLES, SHIFT_DEFS, SHOP_INFO } from "./data.js";
 
 const STORAGE_KEY = "bui_coffee_app_state_v1";
 
@@ -335,6 +335,211 @@ class CoffeeStore {
       topItems,
       allInvoices: this.state.invoices
     };
+  }
+
+  // Lấy dữ liệu chấm công của 1 tuần
+  getTimekeepingWeek(weekKey) {
+    if (!this.state.timekeeping) this.state.timekeeping = {};
+    if (!this.state.timekeeping[weekKey]) {
+      this.state.timekeeping[weekKey] = {
+        weekKey,
+        days: {} // [dateStr]: { morning: false, afternoon: false, evening: false, holidayMultiplier: 1 }
+      };
+    }
+    return this.state.timekeeping[weekKey];
+  }
+
+  // Bật/tắt 1 ca làm việc
+  toggleShift(weekKey, dateStr, shiftKey) {
+    const week = this.getTimekeepingWeek(weekKey);
+    if (!week.days[dateStr]) {
+      week.days[dateStr] = { morning: false, afternoon: false, evening: false, holidayMultiplier: 1 };
+    }
+    week.days[dateStr][shiftKey] = !week.days[dateStr][shiftKey];
+    this.saveState();
+    return week;
+  }
+
+  // Đặt hệ số ngày lễ (1, 2, 3)
+  setHolidayMultiplier(weekKey, dateStr, multiplier) {
+    const week = this.getTimekeepingWeek(weekKey);
+    if (!week.days[dateStr]) {
+      week.days[dateStr] = { morning: false, afternoon: false, evening: false, holidayMultiplier: 1 };
+    }
+    week.days[dateStr].holidayMultiplier = Math.max(1, Number(multiplier) || 1);
+    this.saveState();
+    return week;
+  }
+
+  // Xóa toàn bộ chấm công của tuần
+  clearTimekeepingWeek(weekKey) {
+    if (this.state.timekeeping && this.state.timekeeping[weekKey]) {
+      this.state.timekeeping[weekKey].days = {};
+      this.saveState();
+    }
+  }
+
+  // Thêm khoảng thời gian tùy chỉnh (đi trước ca làm, tăng ca, giờ không cố định)
+  addCustomShift(weekKey, dateStr, { timeLabel, hours, name = "" }) {
+    const week = this.getTimekeepingWeek(weekKey);
+    if (!week.days[dateStr]) {
+      week.days[dateStr] = { morning: false, afternoon: false, evening: false, holidayMultiplier: 1, customShifts: [] };
+    }
+    if (!Array.isArray(week.days[dateStr].customShifts)) {
+      week.days[dateStr].customShifts = [];
+    }
+
+    const cleanHours = Math.max(0.1, Number(hours) || 0);
+    const cleanLabel = (timeLabel || `${cleanHours}h`).trim();
+
+    week.days[dateStr].customShifts.push({
+      id: "cs_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      timeLabel: cleanLabel,
+      hours: cleanHours,
+      name: (name || "").trim()
+    });
+
+    this.saveState();
+    return week;
+  }
+
+  // Xóa khoảng thời gian tùy chỉnh
+  removeCustomShift(weekKey, dateStr, customShiftId) {
+    const week = this.getTimekeepingWeek(weekKey);
+    if (week.days[dateStr] && Array.isArray(week.days[dateStr].customShifts)) {
+      week.days[dateStr].customShifts = week.days[dateStr].customShifts.filter(cs => cs.id !== customShiftId);
+      this.saveState();
+    }
+    return week;
+  }
+
+  // Tính lương tuần theo quy tắc của quán
+  calculateSalary(weekKey, weekDates) {
+    const week = this.getTimekeepingWeek(weekKey);
+    const shiftList = [SHIFT_DEFS.morning, SHIFT_DEFS.afternoon, SHIFT_DEFS.evening];
+
+    let totalShifts = 0;
+    let totalHours = 0;
+    let totalBaseHours = 0;
+    const dayDetails = [];
+
+    weekDates.forEach(d => {
+      const dayData = week.days[d.dateStr] || { morning: false, afternoon: false, evening: false, holidayMultiplier: 1, customShifts: [] };
+      const mult = Number(dayData.holidayMultiplier) || 1;
+      const activeShifts = [];
+
+      // Ca cố định
+      shiftList.forEach(s => {
+        if (dayData[s.id]) {
+          totalShifts += 1;
+          totalBaseHours += s.hours;
+          const effectiveHours = s.hours * mult;
+          totalHours += effectiveHours;
+          activeShifts.push({
+            shiftId: s.id,
+            name: s.name,
+            timeLabel: s.timeLabel,
+            hours: s.hours,
+            effectiveHours,
+            multiplier: mult,
+            isCustom: false
+          });
+        }
+      });
+
+      // Khoảng thời gian tùy chỉnh (đi sớm, ngoài ca...)
+      if (Array.isArray(dayData.customShifts)) {
+        dayData.customShifts.forEach(cs => {
+          totalBaseHours += cs.hours;
+          const effectiveHours = cs.hours * mult;
+          totalHours += effectiveHours;
+          // Nếu ca làm việc tùy chỉnh từ 4 tiếng trở lên hoặc ngày đó chưa có ca cố định nào, tính là 1 ca
+          if (activeShifts.filter(s => !s.isCustom).length === 0 || cs.hours >= 4) {
+            totalShifts += 1;
+          }
+          activeShifts.push({
+            shiftId: cs.id,
+            name: cs.name || "Đi sớm / Tùy chỉnh",
+            timeLabel: cs.timeLabel,
+            hours: cs.hours,
+            effectiveHours,
+            multiplier: mult,
+            isCustom: true
+          });
+        });
+      }
+
+      dayDetails.push({
+        dateStr: d.dateStr,
+        dayName: d.dayName,
+        dateFormatted: d.dateFormatted,
+        isToday: d.isToday,
+        holidayMultiplier: mult,
+        shifts: activeShifts,
+        totalDayHours: activeShifts.reduce((acc, s) => acc + s.effectiveHours, 0)
+      });
+    });
+
+    // Mức lương theo số ca làm trong tuần:
+    // Làm <= 3 ca/tuần: 16.000đ/giờ
+    // Làm >= 4 ca/tuần: 20.000đ/giờ
+    const ratePerHour = totalShifts <= 3 ? 16000 : 20000;
+    const baseSalary = totalHours * ratePerHour;
+
+    // Thưởng chuyên cần: nếu làm trên 7 ca/tuần (> 7 ca, tức là từ 8 ca trở lên): cộng 100.000đ
+    const bonus = totalShifts > 7 ? 100000 : 0;
+    const finalSalary = baseSalary + bonus;
+
+    // Chuỗi tuần "2/11 - 8/11"
+    const startDate = new Date(weekDates[0].dateStr);
+    const endDate = new Date(weekDates[weekDates.length - 1].dateStr);
+    const weekRangeText = `${startDate.getDate()}/${startDate.getMonth() + 1} - ${endDate.getDate()}/${endDate.getMonth() + 1}`;
+
+    return {
+      weekKey,
+      weekRangeText,
+      totalShifts,
+      totalBaseHours,
+      totalHours,
+      ratePerHour,
+      baseSalary,
+      bonus,
+      finalSalary,
+      dayDetails
+    };
+  }
+
+  // Định dạng xuất mẫu tính lương văn bản theo đúng yêu cầu
+  formatSalaryReport(weekKey, weekDates) {
+    const calc = this.calculateSalary(weekKey, weekDates);
+    const lines = [];
+    lines.push(calc.weekRangeText);
+
+    calc.dayDetails.forEach(day => {
+      if (day.shifts.length > 0) {
+        day.shifts.forEach((s, idx) => {
+          const hoursFormatted = (s.hours + "").replace(".", ",");
+          const multText = s.multiplier > 1 ? ` (x${s.multiplier} Lễ = ${(s.effectiveHours + "").replace(".", ",")}h)` : "";
+          if (idx === 0) {
+            lines.push(`${day.dayName}: ${s.timeLabel} = ${hoursFormatted}h${multText}`);
+          } else {
+            lines.push(`      ${s.timeLabel} = ${hoursFormatted}h${multText}`);
+          }
+        });
+      }
+    });
+
+    const totalHoursFormatted = (calc.totalHours + "").replace(".", ",");
+    const rateK = calc.ratePerHour / 1000 + "k";
+    const salaryK = (calc.baseSalary / 1000) + "k";
+    lines.push(`Tổng: ${totalHoursFormatted}h x ${rateK} = ${salaryK}`);
+
+    if (calc.bonus > 0) {
+      lines.push(`+ Thưởng chuyên cần (>7 ca): ${calc.bonus / 1000}k`);
+      lines.push(`Tổng nhận: ${(calc.finalSalary / 1000)}k`);
+    }
+
+    return lines.join("\n");
   }
 
   // Xuất dữ liệu ra file JSON
