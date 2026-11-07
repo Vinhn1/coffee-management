@@ -9,20 +9,26 @@ class CoffeeStore {
 
   loadState() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Đảm bảo đủ 50 bàn nếu dữ liệu cũ chưa đủ
-        if (!parsed.tables || parsed.tables.length < 50) {
-          parsed.tables = INITIAL_TABLES;
+      if (typeof localStorage !== "undefined") {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Đảm bảo đủ 50 bàn nếu dữ liệu cũ chưa đủ
+          if (!parsed.tables || parsed.tables.length < 50) {
+            parsed.tables = INITIAL_TABLES;
+          } else {
+            parsed.tables.forEach(t => {
+              if (typeof t.note !== "string") t.note = "";
+            });
+          }
+          if (!parsed.menu || parsed.menu.length === 0) {
+            parsed.menu = INITIAL_MENU;
+          }
+          if (!parsed.invoices) {
+            parsed.invoices = [];
+          }
+          return parsed;
         }
-        if (!parsed.menu || parsed.menu.length === 0) {
-          parsed.menu = INITIAL_MENU;
-        }
-        if (!parsed.invoices) {
-          parsed.invoices = [];
-        }
-        return parsed;
       }
     } catch (e) {
       console.error("Lỗi khi đọc LocalStorage, khôi phục mặc định:", e);
@@ -39,7 +45,9 @@ class CoffeeStore {
 
   saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      }
     } catch (e) {
       console.error("Lỗi khi lưu LocalStorage:", e);
     }
@@ -92,6 +100,79 @@ class CoffeeStore {
       table.createdAt = new Date().toISOString();
     }
 
+    this.saveState();
+    return true;
+  }
+
+  // Thêm món ngoài menu (món tự do / phụ thu) vào bàn
+  addCustomItemToTable(tableId, { name, price, quantity = 1, note = "" }) {
+    const table = this.getTable(tableId);
+    if (!table || !name || Number(price) < 0) return false;
+
+    const trimmedName = name.trim();
+    const cleanPrice = Number(price);
+    const cleanQty = Math.max(1, Number(quantity) || 1);
+    const cleanNote = (note || "").trim();
+
+    // Kiểm tra xem món tự do này cùng tên, giá, ghi chú đã có trên bàn chưa
+    const existingIndex = table.orderItems.findIndex(
+      item => item.isCustom && item.name === trimmedName && item.price === cleanPrice && (item.note || "") === cleanNote
+    );
+
+    if (existingIndex > -1) {
+      table.orderItems[existingIndex].quantity += cleanQty;
+    } else {
+      const customId = "custom_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      table.orderItems.push({
+        itemId: customId,
+        name: trimmedName,
+        price: cleanPrice,
+        category: "other",
+        quantity: cleanQty,
+        note: cleanNote,
+        isCustom: true
+      });
+    }
+
+    this._recalculateTable(table);
+    table.status = "occupied";
+    if (!table.createdAt) {
+      table.createdAt = new Date().toISOString();
+    }
+
+    this.saveState();
+    return true;
+  }
+
+  // Cập nhật ghi chú riêng cho bàn
+  updateTableNote(tableId, note = "") {
+    const table = this.getTable(tableId);
+    if (!table) return false;
+    table.note = (note || "").trim();
+    this.saveState();
+    return true;
+  }
+
+  // Thêm sản phẩm mới vào danh mục thực đơn
+  addMenuItem({ name, price, category }) {
+    if (!name || Number(price) <= 0) return null;
+
+    const newItem = {
+      id: "m_" + Date.now(),
+      name: name.trim(),
+      price: Number(price),
+      category: category || "coffee",
+      isCustomCreated: true
+    };
+
+    this.state.menu.unshift(newItem);
+    this.saveState();
+    return newItem;
+  }
+
+  // Xóa món đã thêm khỏi thực đơn
+  deleteMenuItem(id) {
+    this.state.menu = this.state.menu.filter(m => m.id !== id);
     this.saveState();
     return true;
   }
@@ -150,6 +231,13 @@ class CoffeeStore {
 
     toTable.status = "occupied";
     if (!toTable.createdAt) toTable.createdAt = fromTable.createdAt || new Date().toISOString();
+    if (fromTable.note && fromTable.note.trim()) {
+      if (toTable.note && toTable.note.trim()) {
+        toTable.note = `${toTable.note} | ${fromTable.note}`;
+      } else {
+        toTable.note = fromTable.note;
+      }
+    }
     this._recalculateTable(toTable);
 
     // Dọn bàn nguồn
@@ -157,6 +245,7 @@ class CoffeeStore {
     fromTable.totalAmount = 0;
     fromTable.status = "empty";
     fromTable.createdAt = null;
+    fromTable.note = "";
 
     this.setActiveTableId(toTableId);
     this.saveState();
@@ -182,6 +271,7 @@ class CoffeeStore {
       customerCash: paymentMethod === "cash" ? customerCash : total,
       changeAmount: change,
       staffNote,
+      tableNote: table.note || "",
       paidAt: new Date().toISOString(),
       wifiPass: this.state.shop.wifiPass
     };
@@ -193,6 +283,7 @@ class CoffeeStore {
     table.totalAmount = 0;
     table.status = "empty";
     table.createdAt = null;
+    table.note = "";
 
     this.saveState();
     return invoice;
@@ -206,6 +297,7 @@ class CoffeeStore {
     table.totalAmount = 0;
     table.status = "empty";
     table.createdAt = null;
+    table.note = "";
     this.saveState();
   }
 
@@ -257,6 +349,9 @@ class CoffeeStore {
       if (!parsed.tables || !parsed.menu) {
         throw new Error("Cấu trúc file sao lưu không hợp lệ.");
       }
+      parsed.tables.forEach(t => {
+        if (typeof t.note !== "string") t.note = "";
+      });
       this.state = parsed;
       this.saveState();
       return true;

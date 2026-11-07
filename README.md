@@ -10,19 +10,23 @@
   - Trực quan hóa tình trạng 50 bàn phục vụ với mã màu: Trống, Có khách / Chưa thanh toán, Đã thanh toán.
   - Lọc nhanh: Tất cả, Bàn đang có khách, Bàn trống.
   - Hỗ trợ chuyển bàn và gộp bàn nhanh chóng.
+  - Chức năng **Ghi chú riêng cho bàn**: Cho phép lưu thông tin đặc biệt của khách tại bàn (khách quen, chờ bạn, mang đồ ngoài, khách VIP...), hiển thị huy hiệu ghi chú trực quan trên sơ đồ bàn và in trên hóa đơn.
 
-- **Menu nước thực tế từ Bụi Coffee**:
+- **Menu nước thực tế & Quản lý thực đơn**:
   - Trích xuất đầy đủ và chính xác 100% từ bảng menu thực tế của quán.
   - 7 danh mục: Coffee pha máy, Trà trái cây, Yaourt trái cây, Nước ép, Sinh tố, Đá xay, Thức uống đóng chai.
+  - **Thêm sản phẩm mới trong Cài đặt**: Tự thêm món mới với tên, đơn giá và danh mục tùy chọn; lưu trực tiếp vào LocalStorage và cho phép xóa/quản lý bất cứ lúc nào.
   - Thông tin Wifi quán: `Pass: 68686868`.
 
 - **Tìm kiếm tức thì thông minh**:
   - Tìm kiếm thời gian thực (instant search) hỗ trợ gõ tiếng Việt không dấu (ví dụ: gõ `bac xiu`, `tra dao`, `yaourt`, `sinh to bo` hiển thị ngay kết quả).
+  - Tích hợp nút tạo nhanh món ngoài menu ngay khi tìm kiếm không có sẵn trong thực đơn.
   - Thanh trượt danh mục tiện lợi.
 
 - **Quản lý Order & Gọi món**:
   - Tăng / giảm số lượng món (+/-) trực tiếp.
   - Thêm ghi chú nhanh cho từng món: Ít đường, Không đường, Ít đá, Nhiều đá, Uống nóng, Mang về...
+  - **Món ngoài menu & Phụ thu**: Cơ chế cộng thêm tiền cho các sản phẩm không có trên menu (bánh tráng, khăn lạnh, phụ thu đồ ăn ngoài...) với tùy chọn giá và số lượng linh hoạt.
 
 - **Thanh toán & Hóa đơn**:
   - Hỗ trợ 2 phương thức: Tiền mặt (tự động tính tiền thừa trả khách) và Chuyển khoản VietQR.

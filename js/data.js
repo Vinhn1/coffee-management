@@ -95,6 +95,7 @@ export const INITIAL_TABLES = Array.from({ length: 50 }, (_, i) => {
     status: "empty", // "empty" (trống), "occupied" (chưa thanh toán), "paid" (đã thanh toán chờ dọn)
     orderItems: [],  // [{ itemId, name, price, quantity, note }]
     createdAt: null,
-    totalAmount: 0
+    totalAmount: 0,
+    note: ""         // Ghi chú riêng cho bàn
   };
 });

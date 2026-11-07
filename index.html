@@ -76,6 +76,14 @@
         <!-- Rendered via JS -->
       </div>
 
+      <!-- Thanh hành động Menu: Món ngoài menu / Phụ thu -->
+      <div class="menu-action-bar">
+        <button class="btn-custom-item" id="btnOpenCustomItemFromMenu">
+          <span id="customItemMenuIcon"></span>
+          <span>+ Thêm món ngoài menu / Phụ thu</span>
+        </button>
+      </div>
+
       <!-- Danh sách món ăn/uống -->
       <div class="menu-grid" id="menuGridContainer">
         <!-- Rendered via JS -->
@@ -95,9 +103,24 @@
         </div>
       </div>
 
+      <!-- Thẻ Ghi chú bàn -->
+      <div class="table-note-card" id="tableNoteCard">
+        <div class="table-note-card-header">
+          <div class="table-note-card-title">
+            <span id="tableNoteIcon"></span>
+            <span>Ghi chú bàn:</span>
+          </div>
+          <button class="btn-table-note-edit" id="btnOpenTableNoteModal">Sửa ghi chú</button>
+        </div>
+        <div class="table-note-card-content" id="tableNoteDisplay">Chưa có ghi chú cho bàn này...</div>
+      </div>
+
       <div id="orderEmptyState" style="text-align: center; padding: 40px 20px; display: none;">
         <p class="text-muted" style="margin-bottom: 12px;">Bàn này hiện chưa có món nào được gọi.</p>
-        <button class="btn-primary" id="btnGoToMenu" style="display: inline-flex; max-width: 180px; margin: 0 auto;">Gọi món ngay</button>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn-primary" id="btnGoToMenu" style="display: inline-flex; max-width: 160px;">Gọi món ngay</button>
+          <button class="btn-secondary" id="btnCustomItemFromEmpty" style="display: inline-flex; max-width: 180px; height: 44px;">+ Món ngoài menu</button>
+        </div>
       </div>
 
       <div id="orderItemsContainer" style="background: #fff; border-radius: var(--radius-md); padding: 8px 14px; border: 1px solid var(--border-color); margin-bottom: 14px;">
@@ -106,9 +129,16 @@
 
       <!-- Tổng tiền và nút thanh toán -->
       <div id="orderSummaryBox" style="background: #fff; border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-color);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <span style="font-size: 15px; font-weight: 600;">Tổng tạm tính:</span>
           <span id="orderSummaryTotal" style="font-size: 20px; font-weight: 800; color: var(--primary);">0đ</span>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <button class="btn-secondary" id="btnOpenCustomItemFromOrder" style="width: 100%; height: 38px; font-size: 13px;">
+            <span id="customItemOrderIcon"></span>
+            <span>+ Thêm món ngoài menu / Phụ thu</span>
+          </button>
         </div>
 
         <div style="display: flex; gap: 10px;">
@@ -301,6 +331,41 @@
           <div style="font-size: 13px;">Quy mô: <b>50 bàn</b></div>
         </div>
 
+        <!-- Thêm sản phẩm mới vào danh mục thực đơn -->
+        <div style="background: var(--bg-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Thêm món mới vào thực đơn</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên sản phẩm mới:</label>
+              <input type="text" id="newProductName" class="search-input" placeholder="Ví dụ: Cà phê muối, Trà lài đá..." style="padding-left: 12px; height: 38px;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div style="flex: 1;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Đơn giá (VNĐ):</label>
+                <input type="number" id="newProductPrice" class="search-input" placeholder="Ví dụ: 25000" style="padding-left: 12px; height: 38px;">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Danh mục:</label>
+                <select id="newProductCategory" class="search-input" style="padding-left: 8px; height: 38px; cursor: pointer; font-size: 13px;">
+                  <!-- Options rendered via JS -->
+                </select>
+              </div>
+            </div>
+            <button class="btn-primary" id="btnAddNewProduct" style="height: 40px; margin-top: 4px; font-size: 13px;">
+              <span id="addProductIcon"></span>
+              <span>Lưu món vào danh mục</span>
+            </button>
+          </div>
+
+          <!-- Danh sách món tự thêm -->
+          <div style="margin-top: 14px; border-top: 1px dashed var(--border-color); padding-top: 10px;" id="customProductsContainer">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Món mới đã thêm vào Menu (<span id="customProductsCount">0</span>):</div>
+            <div id="customProductsList" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
         <div>
           <label style="font-size: 13px; font-weight: 700; margin-bottom: 6px; display: block;">Sao lưu & Khôi phục dữ liệu:</label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -320,6 +385,92 @@
         <div style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
           <button class="btn-danger" id="btnResetAllData" style="width: 100%;">Khôi phục toàn bộ cài đặt gốc</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GHI CHÚ BÀN -->
+  <div class="modal-overlay" id="tableNoteModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="tableNoteModalTitle">Ghi chú Bàn 01</div>
+        <button class="modal-close-btn" id="btnCloseTableNoteModal"></button>
+      </div>
+      <div class="modal-body">
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Nội dung ghi chú cho bàn:</label>
+        <textarea id="tableNoteInput" class="search-input" placeholder="Nhập ghi chú (vd: Khách quen, Đang chờ bạn, Mang đồ ngoài...)" style="height: 75px; padding: 10px 12px; resize: none;"></textarea>
+        
+        <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 10px; margin-bottom: 6px;">Gợi ý nhanh:</div>
+        <div class="quick-notes-list">
+          <span class="quick-table-note-tag" data-note="Khách quen">Khách quen</span>
+          <span class="quick-table-note-tag" data-note="Đang chờ bạn">Đang chờ bạn</span>
+          <span class="quick-table-note-tag" data-note="Mang đồ ăn ngoài">Mang đồ ăn ngoài</span>
+          <span class="quick-table-note-tag" data-note="Khách VIP">Khách VIP</span>
+          <span class="quick-table-note-tag" data-note="Ưu tiên làm trước">Ưu tiên làm trước</span>
+          <span class="quick-table-note-tag" data-note="Ngồi ngoài sân">Ngồi ngoài sân</span>
+          <span class="quick-table-note-tag" data-note="Uống xong tính tiền">Uống xong tính tiền</span>
+          <span class="quick-table-note-tag" data-note="Bàn đặt trước">Bàn đặt trước</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btnClearTableNote" style="height: 44px; padding: 0 14px;">Xóa</button>
+        <button class="btn-primary" id="btnSaveTableNote">Lưu ghi chú bàn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: THÊM MÓN NGOÀI MENU / PHỤ THU -->
+  <div class="modal-overlay" id="customItemModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="customItemModalTitle">Thêm món ngoài menu / Phụ thu</div>
+        <button class="modal-close-btn" id="btnCloseCustomItemModal"></button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên món / Khoản thu:</label>
+          <input type="text" id="customItemNameInput" class="search-input" placeholder="Ví dụ: Bánh mì, Khăn lạnh, Phụ thu đồ ngoài..." style="padding-left: 12px;">
+          <div class="quick-notes-list" style="margin-top: 6px;">
+            <span class="quick-custom-name-tag" data-name="Bánh mì">Bánh mì</span>
+            <span class="quick-custom-name-tag" data-name="Bánh tráng">Bánh tráng</span>
+            <span class="quick-custom-name-tag" data-name="Khăn lạnh">Khăn lạnh</span>
+            <span class="quick-custom-name-tag" data-name="Phụ thu">Phụ thu</span>
+            <span class="quick-custom-name-tag" data-name="Bao thuốc lá">Bao thuốc lá</span>
+            <span class="quick-custom-name-tag" data-name="Hạt hướng dương">Hạt hướng dương</span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Đơn giá (VNĐ):</label>
+          <input type="number" id="customItemPriceInput" class="search-input" placeholder="Nhập số tiền..." style="padding-left: 12px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="5000">5.000đ</button>
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="10000">10.000đ</button>
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="15000">15.000đ</button>
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="20000">20.000đ</button>
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="30000">30.000đ</button>
+            <button class="filter-chip btn-quick-custom-price" type="button" data-val="50000">50.000đ</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="flex: 1;">
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Số lượng:</label>
+            <div class="qty-control" style="width: 100%; justify-content: space-between; height: 42px;">
+              <button class="qty-btn" id="btnCustomQtyMinus" type="button" style="width: 36px; height: 36px;">-</button>
+              <span class="qty-val" id="customQtyVal" style="font-size: 15px;">1</span>
+              <button class="qty-btn" id="btnCustomQtyPlus" type="button" style="width: 36px; height: 36px;">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Ghi chú thêm (tùy chọn):</label>
+          <input type="text" id="customItemNoteInput" class="search-input" placeholder="Ví dụ: Khách mang từ ngoài vào..." style="padding-left: 12px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" id="btnConfirmAddCustomItem">Thêm vào bàn</button>
       </div>
     </div>
   </div>

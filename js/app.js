@@ -31,10 +31,12 @@ class CoffeeApp {
     this.searchQuery = "";
     this.editingNoteItem = null; // { itemId, currentNote }
     this.paymentMethod = "cash";
+    this.customItemQty = 1;
 
     this.initIcons();
     this.initNavigation();
     this.initCategoryScroll();
+    this.initSettingsCategories();
     this.initSearch();
     this.initEventListeners();
     this.renderAll();
@@ -60,11 +62,37 @@ class CoffeeApp {
     document.getElementById("btnCloseNoteModal").innerHTML = ICONS.close;
     document.getElementById("btnCloseSettingsModal").innerHTML = ICONS.close;
 
+    const btnCloseTableNote = document.getElementById("btnCloseTableNoteModal");
+    if (btnCloseTableNote) btnCloseTableNote.innerHTML = ICONS.close;
+
+    const btnCloseCustomItem = document.getElementById("btnCloseCustomItemModal");
+    if (btnCloseCustomItem) btnCloseCustomItem.innerHTML = ICONS.close;
+
+    const tableNoteIconEl = document.getElementById("tableNoteIcon");
+    if (tableNoteIconEl) tableNoteIconEl.innerHTML = ICONS.note;
+
+    const customMenuIconEl = document.getElementById("customItemMenuIcon");
+    if (customMenuIconEl) customMenuIconEl.innerHTML = ICONS.plusCircle || ICONS.plus;
+
+    const customOrderIconEl = document.getElementById("customItemOrderIcon");
+    if (customOrderIconEl) customOrderIconEl.innerHTML = ICONS.plusCircle || ICONS.plus;
+
+    const addProductIconEl = document.getElementById("addProductIcon");
+    if (addProductIconEl) addProductIconEl.innerHTML = ICONS.plus;
+
     // Bottom nav icons
     document.getElementById("navTablesIcon").innerHTML = ICONS.tables;
     document.getElementById("navMenuIcon").innerHTML = ICONS.menu;
     document.getElementById("navOrderIcon").innerHTML = ICONS.receipt;
     document.getElementById("navReportsIcon").innerHTML = ICONS.chart;
+  }
+
+  // Khởi tạo danh mục cho ô chọn trong cài đặt
+  initSettingsCategories() {
+    const select = document.getElementById("newProductCategory");
+    if (!select) return;
+    const cats = CATEGORIES.filter(c => c.id !== "all");
+    select.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
   }
 
   // Điều hướng các tab chính
@@ -250,8 +278,192 @@ class CoffeeApp {
       this.closeModal("transferModal");
     });
 
+    // Mở modal thêm món ngoài menu
+    const btnCustomFromMenu = document.getElementById("btnOpenCustomItemFromMenu");
+    if (btnCustomFromMenu) {
+      btnCustomFromMenu.addEventListener("click", () => {
+        this.openCustomItemModal();
+      });
+    }
+
+    const btnCustomFromOrder = document.getElementById("btnOpenCustomItemFromOrder");
+    if (btnCustomFromOrder) {
+      btnCustomFromOrder.addEventListener("click", () => {
+        this.openCustomItemModal();
+      });
+    }
+
+    const btnCustomFromEmpty = document.getElementById("btnCustomItemFromEmpty");
+    if (btnCustomFromEmpty) {
+      btnCustomFromEmpty.addEventListener("click", () => {
+        this.openCustomItemModal();
+      });
+    }
+
+    // Modal món ngoài menu events
+    const btnCloseCustom = document.getElementById("btnCloseCustomItemModal");
+    if (btnCloseCustom) {
+      btnCloseCustom.addEventListener("click", () => {
+        this.closeModal("customItemModal");
+      });
+    }
+
+    // Tăng giảm số lượng món ngoài menu
+    const btnCustomMinus = document.getElementById("btnCustomQtyMinus");
+    const btnCustomPlus = document.getElementById("btnCustomQtyPlus");
+    const customQtyVal = document.getElementById("customQtyVal");
+
+    if (btnCustomMinus && btnCustomPlus && customQtyVal) {
+      btnCustomMinus.addEventListener("click", () => {
+        if (this.customItemQty > 1) {
+          this.customItemQty -= 1;
+          customQtyVal.textContent = this.customItemQty;
+        }
+      });
+      btnCustomPlus.addEventListener("click", () => {
+        this.customItemQty += 1;
+        customQtyVal.textContent = this.customItemQty;
+      });
+    }
+
+    // Gợi ý giá nhanh cho món ngoài menu
+    document.querySelectorAll(".btn-quick-custom-price").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-val");
+        const priceInput = document.getElementById("customItemPriceInput");
+        if (priceInput) priceInput.value = val;
+      });
+    });
+
+    // Gợi ý tên nhanh cho món ngoài menu
+    document.querySelectorAll(".quick-custom-name-tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        const name = tag.getAttribute("data-name");
+        const nameInput = document.getElementById("customItemNameInput");
+        if (nameInput) nameInput.value = name;
+      });
+    });
+
+    // Nút xác nhận thêm món ngoài menu vào bàn
+    const btnConfirmCustom = document.getElementById("btnConfirmAddCustomItem");
+    if (btnConfirmCustom) {
+      btnConfirmCustom.addEventListener("click", () => {
+        const nameInput = document.getElementById("customItemNameInput");
+        const priceInput = document.getElementById("customItemPriceInput");
+        const noteInput = document.getElementById("customItemNoteInput");
+        const name = nameInput.value.trim();
+        const price = Number(priceInput.value);
+
+        if (!name) {
+          alert("Vui lòng nhập tên món hoặc nội dung khoản thu.");
+          nameInput.focus();
+          return;
+        }
+
+        if (priceInput.value.trim() === "" || isNaN(price) || price < 0) {
+          alert("Vui lòng nhập đơn giá hợp lệ.");
+          priceInput.focus();
+          return;
+        }
+
+        const activeTable = store.getActiveTable();
+        store.addCustomItemToTable(activeTable.id, {
+          name,
+          price,
+          quantity: this.customItemQty,
+          note: noteInput.value.trim()
+        });
+
+        this.closeModal("customItemModal");
+        this.renderAll();
+      });
+    }
+
+    // Mở modal ghi chú bàn
+    const btnOpenTableNote = document.getElementById("btnOpenTableNoteModal");
+    if (btnOpenTableNote) {
+      btnOpenTableNote.addEventListener("click", () => {
+        this.openTableNoteModal();
+      });
+    }
+
+    const btnCloseTableNote = document.getElementById("btnCloseTableNoteModal");
+    if (btnCloseTableNote) {
+      btnCloseTableNote.addEventListener("click", () => {
+        this.closeModal("tableNoteModal");
+      });
+    }
+
+    // Gợi ý ghi chú bàn nhanh
+    document.querySelectorAll(".quick-table-note-tag").forEach(tag => {
+      tag.addEventListener("click", () => {
+        const text = tag.getAttribute("data-note");
+        const noteInput = document.getElementById("tableNoteInput");
+        if (noteInput) {
+          noteInput.value = noteInput.value ? noteInput.value + ", " + text : text;
+        }
+      });
+    });
+
+    // Lưu ghi chú bàn
+    const btnSaveTableNote = document.getElementById("btnSaveTableNote");
+    if (btnSaveTableNote) {
+      btnSaveTableNote.addEventListener("click", () => {
+        const noteInput = document.getElementById("tableNoteInput");
+        const note = noteInput ? noteInput.value.trim() : "";
+        const activeTable = store.getActiveTable();
+        store.updateTableNote(activeTable.id, note);
+        this.closeModal("tableNoteModal");
+        this.renderAll();
+      });
+    }
+
+    // Xóa ghi chú bàn
+    const btnClearTableNote = document.getElementById("btnClearTableNote");
+    if (btnClearTableNote) {
+      btnClearTableNote.addEventListener("click", () => {
+        const activeTable = store.getActiveTable();
+        store.updateTableNote(activeTable.id, "");
+        this.closeModal("tableNoteModal");
+        this.renderAll();
+      });
+    }
+
+    // Thêm sản phẩm mới vào danh mục trong Cài đặt
+    const btnAddNewProduct = document.getElementById("btnAddNewProduct");
+    if (btnAddNewProduct) {
+      btnAddNewProduct.addEventListener("click", () => {
+        const nameInput = document.getElementById("newProductName");
+        const priceInput = document.getElementById("newProductPrice");
+        const catSelect = document.getElementById("newProductCategory");
+        const name = nameInput.value.trim();
+        const price = Number(priceInput.value);
+        const category = catSelect.value;
+
+        if (!name) {
+          alert("Vui lòng nhập tên sản phẩm mới.");
+          nameInput.focus();
+          return;
+        }
+
+        if (priceInput.value.trim() === "" || isNaN(price) || price <= 0) {
+          alert("Vui lòng nhập giá bán hợp lệ lớn hơn 0.");
+          priceInput.focus();
+          return;
+        }
+
+        store.addMenuItem({ name, price, category });
+        nameInput.value = "";
+        priceInput.value = "";
+        this.renderSettingsCustomProducts();
+        this.renderMenu();
+        alert(`Đã lưu "${name}" vào danh mục thực đơn.`);
+      });
+    }
+
     // Modal Cài đặt & Sao lưu
     document.getElementById("btnOpenSettings").addEventListener("click", () => {
+      this.renderSettingsCustomProducts();
       this.openModal("settingsModal");
     });
 
@@ -306,8 +518,12 @@ class CoffeeApp {
     const currentOrderTitle = document.getElementById("currentOrderTableTitle");
 
     if (activeTable) {
-      if (activeTableTitle) activeTableTitle.textContent = `Đang phục vụ: ${activeTable.name}`;
-      if (currentOrderTitle) currentOrderTitle.textContent = `Chi tiết ${activeTable.name}`;
+      if (activeTableTitle) {
+        activeTableTitle.textContent = `Đang phục vụ: ${activeTable.name}${activeTable.note ? ` (${activeTable.note})` : ""}`;
+      }
+      if (currentOrderTitle) {
+        currentOrderTitle.textContent = `Chi tiết ${activeTable.name}`;
+      }
     }
 
     // Badge số lượng món trên tab Đơn hàng
@@ -352,6 +568,12 @@ class CoffeeApp {
               ${table.status === "occupied" ? `${totalItems} món` : "Trống"}
             </div>
             ${table.totalAmount > 0 ? `<div class="table-price-tag">${formatMoney(table.totalAmount)}</div>` : ""}
+            ${table.note ? `
+              <div class="table-card-note" title="${table.note.replace(/"/g, '&quot;')}">
+                ${ICONS.note}
+                <span>${table.note}</span>
+              </div>
+            ` : ""}
           </div>
         </div>
       `;
@@ -397,8 +619,17 @@ class CoffeeApp {
       container.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 10px; color: var(--text-muted);">
           <p>Không tìm thấy món nước phù hợp với từ khóa "${this.searchQuery}".</p>
+          <button class="btn-primary" id="btnAddSearchAsCustomItem" style="margin: 14px auto 0; max-width: 260px; height: 38px; font-size: 13px;">
+            + Thêm "${this.searchQuery}" vào bàn
+          </button>
         </div>
       `;
+      const btnAddSearch = document.getElementById("btnAddSearchAsCustomItem");
+      if (btnAddSearch) {
+        btnAddSearch.addEventListener("click", () => {
+          this.openCustomItemModal(this.searchQuery);
+        });
+      }
       return;
     }
 
@@ -445,6 +676,18 @@ class CoffeeApp {
     const summaryBox = document.getElementById("orderSummaryBox");
     const totalEl = document.getElementById("orderSummaryTotal");
 
+    // Hiển thị ghi chú của bàn
+    const tableNoteDisplay = document.getElementById("tableNoteDisplay");
+    if (tableNoteDisplay) {
+      if (activeTable && activeTable.note) {
+        tableNoteDisplay.textContent = activeTable.note;
+        tableNoteDisplay.classList.add("has-note");
+      } else {
+        tableNoteDisplay.textContent = "Chưa có ghi chú cho bàn này...";
+        tableNoteDisplay.classList.remove("has-note");
+      }
+    }
+
     if (!activeTable || activeTable.orderItems.length === 0) {
       emptyState.style.display = "block";
       container.style.display = "none";
@@ -460,7 +703,10 @@ class CoffeeApp {
     container.innerHTML = activeTable.orderItems.map(item => `
       <div class="order-item-row" data-id="${item.itemId}" data-note="${item.note || ""}">
         <div class="order-item-left">
-          <div class="order-item-title">${item.name}</div>
+          <div class="order-item-title">
+            ${item.name}
+            ${item.isCustom ? `<span class="order-item-custom-badge">Món ngoài</span>` : ""}
+          </div>
           <div class="order-item-sub">${formatMoney(item.price)} x ${item.quantity} = <b>${formatMoney(item.price * item.quantity)}</b></div>
           <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
             <span style="font-size: 11px; color: var(--text-muted);">
@@ -579,6 +825,24 @@ class CoffeeApp {
     document.getElementById("customerCashInput").value = activeTable.totalAmount;
     document.getElementById("changeAmountText").textContent = "0đ";
 
+    // Ghi chú bàn trong thanh toán
+    let noteEl = document.getElementById("checkoutTableNoteNotice");
+    if (!noteEl) {
+      noteEl = document.createElement("div");
+      noteEl.id = "checkoutTableNoteNotice";
+      noteEl.style.cssText = "font-size: 12px; color: var(--primary); background: var(--primary-light); padding: 6px 10px; border-radius: var(--radius-sm); margin-bottom: 12px; text-align: center;";
+      const amountEl = document.getElementById("checkoutTotalAmount");
+      if (amountEl && amountEl.parentNode) {
+        amountEl.parentNode.after(noteEl);
+      }
+    }
+    if (activeTable.note) {
+      noteEl.innerHTML = `Ghi chú bàn: <b>${activeTable.note}</b>`;
+      noteEl.style.display = "block";
+    } else {
+      noteEl.style.display = "none";
+    }
+
     // Nút gợi ý tiền mặt
     const quickCashContainer = document.getElementById("quickCashButtons");
     const total = activeTable.totalAmount;
@@ -661,6 +925,7 @@ class CoffeeApp {
         <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${SHOP_INFO.slogan}</div>
         <div style="font-size: 12px; margin-top: 4px;">Pass Wifi: <b>${invoice.wifiPass || SHOP_INFO.wifiPass}</b></div>
         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Số HĐ: ${invoice.id} | Bàn: ${invoice.tableName}</div>
+        ${invoice.tableNote ? `<div style="font-size: 11px; color: var(--primary); margin-top: 2px;">Ghi chú bàn: <b>${invoice.tableNote}</b></div>` : ""}
         <div style="font-size: 11px; color: var(--text-muted);">${new Date(invoice.paidAt).toLocaleString("vi-VN")}</div>
       </div>
       <div style="margin-bottom: 10px;">
@@ -764,6 +1029,98 @@ class CoffeeApp {
     input.value = currentNote || "";
     this.openModal("itemNoteModal");
     setTimeout(() => input.focus(), 200);
+  }
+
+  // MODAL THÊM MÓN NGOÀI MENU / PHỤ THU
+  openCustomItemModal(prefilledName = "") {
+    const activeTable = store.getActiveTable();
+    this.customItemQty = 1;
+    const titleEl = document.getElementById("customItemModalTitle");
+    if (titleEl && activeTable) {
+      titleEl.textContent = `Thêm món ngoài menu - ${activeTable.name}`;
+    }
+
+    const nameInput = document.getElementById("customItemNameInput");
+    const priceInput = document.getElementById("customItemPriceInput");
+    const noteInput = document.getElementById("customItemNoteInput");
+    const qtyVal = document.getElementById("customQtyVal");
+
+    if (nameInput) nameInput.value = prefilledName || "";
+    if (priceInput) priceInput.value = "";
+    if (noteInput) noteInput.value = "";
+    if (qtyVal) qtyVal.textContent = "1";
+
+    this.openModal("customItemModal");
+    setTimeout(() => {
+      if (prefilledName && priceInput) {
+        priceInput.focus();
+      } else if (nameInput) {
+        nameInput.focus();
+      }
+    }, 200);
+  }
+
+  // MODAL GHI CHÚ BÀN
+  openTableNoteModal() {
+    const activeTable = store.getActiveTable();
+    if (!activeTable) return;
+
+    const titleEl = document.getElementById("tableNoteModalTitle");
+    if (titleEl) {
+      titleEl.textContent = `Ghi chú cho ${activeTable.name}`;
+    }
+
+    const input = document.getElementById("tableNoteInput");
+    if (input) {
+      input.value = activeTable.note || "";
+    }
+
+    this.openModal("tableNoteModal");
+    setTimeout(() => {
+      if (input) input.focus();
+    }, 200);
+  }
+
+  // RENDER DANH SÁCH MÓN TỰ THÊM TRONG CÀI ĐẶT
+  renderSettingsCustomProducts() {
+    const list = document.getElementById("customProductsList");
+    const countEl = document.getElementById("customProductsCount");
+    if (!list) return;
+
+    const catMap = {};
+    CATEGORIES.forEach(c => catMap[c.id] = c.name);
+
+    const customItems = store.getMenu().filter(m => m.isCustomCreated);
+    if (countEl) countEl.textContent = customItems.length;
+
+    if (customItems.length === 0) {
+      list.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0;">Chưa có món tự thêm nào trong thực đơn.</div>`;
+      return;
+    }
+
+    list.innerHTML = customItems.map(item => `
+      <div class="custom-product-item">
+        <div class="custom-product-item-info">
+          <div class="custom-product-item-title">${item.name}</div>
+          <div class="custom-product-item-meta">${catMap[item.category] || item.category} - <b style="color: var(--primary);">${formatMoney(item.price)}</b></div>
+        </div>
+        <button class="btn-del-menu-item" data-del-id="${item.id}" title="Xóa món khỏi thực đơn">
+          ${ICONS.trash}
+        </button>
+      </div>
+    `).join("");
+
+    list.querySelectorAll(".btn-del-menu-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-del-id");
+        const item = store.getMenu().find(m => m.id === id);
+        if (item && confirm(`Bạn có chắc muốn xóa món "${item.name}" khỏi thực đơn?`)) {
+          store.deleteMenuItem(id);
+          this.renderSettingsCustomProducts();
+          this.renderMenu();
+        }
+      });
+    });
   }
 
   // SAO LƯU VÀ KHÔI PHỤC DỮ LIỆU
