@@ -1,0 +1,1249 @@
+/* Bui Coffee - Ban nhanh (Quick Register): tra cuu nuoc va tinh tien sieu toc
+   Pham vi: .ql-screen (che do quay thu ngan) + nut vao tu header / banner Thuc don.
+   Khong ghi de style cua cac man hinh hien co. Khong dung emoji. */
+
+/* ---------- Tokens (chi trong pham vi Ban nhanh) ---------- */
+.ql-screen,
+.btn-header-quick,
+.btn-menu-to-quick {
+  --ql-brown: #6F4E37;
+  --ql-brown-hover: #5A3E2B;
+  --ql-ink: #2B1F17;
+  --ql-cream: #FDFBF7;
+  --ql-change: #047857;
+  --ql-short: #b91c1c;
+}
+
+/* ---------- Diem vao ---------- */
+.btn-header-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--ql-brown);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-header-quick:hover,
+.btn-header-quick:active {
+  background: var(--ql-brown-hover);
+}
+
+.btn-header-quick span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.active-table-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-menu-to-quick {
+  background: var(--ql-brown);
+  border-color: var(--ql-brown);
+  color: #ffffff;
+}
+
+@media (max-width: 520px) {
+  .btn-header-quick { padding: 0 10px; }
+  .wifi-pill { display: none; }
+  .brand-info p { white-space: nowrap; }
+}
+
+/* ---------- Che do quay thu ngan ---------- */
+body.quick-mode {
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+body.quick-mode .app-header,
+body.quick-mode .bottom-nav {
+  display: none;
+}
+
+body.quick-mode .main-container {
+  max-width: none;
+  padding: 0;
+}
+
+body.quick-mode .view-section:not(#viewQuick) {
+  display: none;
+}
+
+body.quick-mode #viewQuick {
+  display: block;
+  animation: none;
+}
+
+/* .modal-overlay co z-index 100: phai nam tren .ql-screen (z-index 60) */
+.ql-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "top"
+    "dest"
+    "search"
+    "grid"
+    "dock";
+  background: var(--ql-cream);
+  color: var(--ql-ink);
+  overflow: hidden;
+}
+
+.ql-screen [hidden] {
+  display: none !important;
+}
+
+.ql-screen button {
+  font-family: inherit;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* ---------- Thanh tren ---------- */
+.ql-topbar {
+  grid-area: top;
+  height: 48px;
+  background: var(--ql-brown);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  padding-top: env(safe-area-inset-top, 0px);
+  box-sizing: content-box;
+}
+
+.ql-title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.ql-icon-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: inherit;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.ql-icon-btn:active {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.ql-icon-btn span {
+  display: inline-flex;
+}
+
+/* ---------- Hinh thuc ban ---------- */
+.ql-dest {
+  grid-area: dest;
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px 4px;
+}
+
+.ql-dest-btn {
+  flex: 1;
+  height: 40px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: var(--ql-ink);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.ql-dest-btn.active {
+  background: var(--ql-brown);
+  border-color: var(--ql-brown);
+  color: #ffffff;
+}
+
+/* ---------- Tim kiem ---------- */
+.ql-searchwrap {
+  grid-area: search;
+  position: relative;
+  padding: 4px 12px 8px;
+  z-index: 3;
+}
+
+.ql-searchrow {
+  display: flex;
+  gap: 8px;
+}
+
+.ql-search {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.ql-search .search-input {
+  height: 48px;
+  font-size: 16px; /* >= 16px de iOS khong tu phong to khi focus */
+  padding-right: 44px;
+}
+
+.ql-search .search-input:focus {
+  border-color: var(--ql-brown);
+}
+
+.ql-search .search-clear-btn {
+  width: 36px;
+  height: 36px;
+  right: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.ql-square-btn {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: var(--ql-brown);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.ql-square-btn:active {
+  background: var(--bg-surface);
+}
+
+.ql-square-btn span {
+  display: inline-flex;
+}
+
+.ql-parse-chip {
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: var(--primary-light);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ql-ink);
+}
+
+.ql-parse-chip.is-error {
+  background: var(--danger-bg);
+  border-color: #fecaca;
+  color: var(--ql-short);
+}
+
+.ql-results {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 100%;
+  margin-top: -4px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.ql-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--bg-surface);
+}
+
+.ql-result:last-child {
+  border-bottom: none;
+}
+
+.ql-result.active {
+  background: var(--primary-light);
+}
+
+.ql-result:active {
+  background: var(--bg-surface);
+}
+
+.ql-result-alias {
+  min-width: 44px;
+  padding: 3px 8px;
+  background: var(--bg-surface);
+  color: var(--ql-brown);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ql-result-alias mark {
+  background: transparent;
+  color: var(--ql-ink);
+  font-weight: 800;
+}
+
+.ql-result-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-result-qty {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background: var(--ql-brown);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ql-result-price {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.ql-result-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- Luoi mon ban chay ---------- */
+.ql-grid {
+  grid-area: grid;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(60px, 1fr));
+  gap: 8px;
+  padding: 0 12px 8px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ql-tile:nth-child(n+13) {
+  display: none;
+}
+
+.ql-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  min-height: 84px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  color: var(--ql-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.08s, background 0.08s, border-color 0.08s;
+  overflow: hidden;
+}
+
+.ql-tile:active {
+  transform: scale(0.97);
+  background: var(--primary-light);
+}
+
+.ql-tile.has-qty {
+  border-color: var(--ql-brown);
+  background: var(--primary-light);
+}
+
+.ql-tile-img-box {
+  width: 100%;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  overflow: hidden;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ql-tile-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ql-tile-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+}
+
+.ql-tile-name {
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-main);
+}
+
+.ql-tile-price {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.ql-tile-bottom {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.ql-tile-thumb {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(92, 58, 33, 0.14);
+  background: var(--bg-surface);
+}
+
+.ql-result-thumb {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.ql-full-thumb {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.ql-tile-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 36px;
+  height: 36px;
+  display: none;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.ql-tile.has-qty .ql-tile-badge {
+  display: inline-flex;
+}
+
+.ql-tile-badge-num {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ql-brown);
+  color: #ffffff;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- Dock thanh toan ---------- */
+.ql-dock {
+  grid-area: dock;
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 16px rgba(45, 30, 20, 0.08);
+  padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ql-dock-empty {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ql-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: var(--ql-ink);
+  cursor: pointer;
+}
+
+.ql-sum-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ql-sum-count {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ql-sum-list {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-total {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ql-ink);
+  white-space: nowrap;
+}
+
+.ql-table-info {
+  padding: 6px 10px;
+  background: var(--status-occupied-bg);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--status-occupied);
+}
+
+.ql-method {
+  display: flex;
+  gap: 6px;
+}
+
+.ql-method-btn {
+  flex: 1;
+  height: 36px;
+  background: #ffffff;
+  color: var(--ql-ink);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ql-method-btn.active {
+  background: var(--ql-ink);
+  border-color: var(--ql-ink);
+  color: #ffffff;
+}
+
+.ql-tender {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ql-chip {
+  height: 44px;
+  background: #ffffff;
+  color: var(--ql-ink);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s, background 0.08s;
+}
+
+.ql-chip:active {
+  transform: scale(0.97);
+  background: var(--bg-surface);
+}
+
+.ql-chip-exact {
+  border-color: var(--ql-brown);
+  color: var(--ql-brown);
+}
+
+.ql-chip.selected {
+  background: var(--ql-brown);
+  border-color: var(--ql-brown);
+  color: #ffffff;
+}
+
+.ql-chip[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: #ffffff;
+}
+
+.ql-change-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 36px;
+}
+
+.ql-change {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-muted);
+}
+
+.ql-change.is-exact {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ql-change.is-ok {
+  color: var(--ql-change);
+}
+
+.ql-change.is-short {
+  color: var(--ql-short);
+}
+
+.ql-link-btn {
+  min-height: 36px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  color: var(--ql-brown);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ql-custom-cash {
+  height: 44px;
+  padding-left: 14px;
+  font-size: 16px;
+}
+
+.ql-complete {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  background: var(--ql-brown);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.ql-complete:active {
+  background: var(--ql-brown-hover);
+}
+
+.ql-complete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ql-secondary {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  color: var(--ql-brown);
+  border: 1.5px solid var(--ql-brown);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ql-table-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---------- Chi tiet don: ngan keo (dien thoai) ---------- */
+.ql-cart-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.ql-cart,
+.ql-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 71;
+  max-height: 72dvh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(105%);
+  transition: transform 0.2s ease-out;
+  visibility: hidden;
+}
+
+.ql-cart.open,
+.ql-sheet:not([hidden]) {
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.ql-cart-head,
+.ql-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ql-cart-head .ql-icon-btn,
+.ql-sheet-head .ql-icon-btn {
+  color: var(--text-muted);
+}
+
+.ql-cart-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ql-cart-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 16px 12px;
+}
+
+.ql-cart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.ql-cart-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ql-cart-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-cart-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ql-cart-line-total {
+  min-width: 64px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ql-cart-del {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.ql-cart-empty {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.ql-cart .qty-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.ql-order-note-wrap {
+  padding: 8px 16px 10px;
+  border-top: 1px dashed var(--border-color);
+  background: var(--bg-surface);
+}
+
+.ql-order-note-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-main);
+  outline: none;
+}
+
+.ql-order-note-input:focus {
+  border-color: var(--ql-brown);
+}
+
+.ql-cart-btn-note {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ql-cart-btn-note:hover {
+  color: var(--ql-brown);
+  background: var(--primary-light);
+}
+
+.ql-cart-btn-note.has-note {
+  color: var(--ql-brown);
+  font-weight: 600;
+}
+
+.ql-cart-item-note {
+  font-size: 11.5px;
+  color: var(--ql-brown);
+  font-style: italic;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+/* ---------- Ma QR ---------- */
+.ql-qr-box {
+  padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  overflow-y: auto;
+}
+
+.ql-qr-box img {
+  max-width: 260px;
+  width: 100%;
+  height: auto;
+}
+
+.ql-qr-box img.qr-payment-photo {
+  width: auto;
+  max-width: 230px;
+  max-height: 52vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* ---------- Thong bao sau thanh toan ---------- */
+.ql-toast {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
+  border-top: 3px solid var(--ql-change);
+  box-shadow: 0 -6px 20px rgba(45, 30, 20, 0.14);
+  animation: qlToastIn 0.18s ease-out;
+}
+
+.ql-toast-main {
+  min-width: 0;
+}
+
+.ql-toast-received {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ql-toast-change {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ql-change);
+  white-space: nowrap;
+}
+
+.ql-toast-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ql-toast-btn {
+  height: 40px;
+  min-width: 84px;
+  padding: 0 14px;
+  background: #ffffff;
+  color: var(--ql-brown);
+  border: 1.5px solid var(--ql-brown);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ql-toast-btn:active {
+  background: var(--primary-light);
+}
+
+@keyframes qlToastIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ---------- Focus (ban phim cung) ---------- */
+.ql-screen button:focus-visible,
+.ql-screen input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-alpha);
+}
+
+/* ---------- Tablet doc 600-899px: giu bo cuc dien thoai, o to hon ---------- */
+@media (min-width: 600px) {
+  .ql-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(72px, 1fr));
+    gap: 10px;
+    padding: 0 16px 10px;
+  }
+
+  .ql-dest,
+  .ql-searchwrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ql-results {
+    left: 16px;
+    right: 16px;
+  }
+
+  .ql-tile-name { font-size: 15px; }
+
+  .ql-dock {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ql-dock > *,
+  .ql-toast > * {
+    max-width: 640px;
+  }
+
+  .ql-dock > * {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ql-cart,
+  .ql-sheet {
+    left: 50%;
+    right: auto;
+    width: 100%;
+    max-width: 540px;
+    transform: translate(-50%, 105%);
+  }
+
+  .ql-cart.open,
+  .ql-sheet:not([hidden]) {
+    transform: translate(-50%, 0);
+  }
+}
+
+/* ---------- Tablet ngang >= 900px: 2 cot, gio hang luon hien ---------- */
+@media (min-width: 900px) {
+  .ql-screen {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "top top"
+      "search dest"
+      "grid cart"
+      "grid dock";
+  }
+
+  .ql-dest {
+    align-items: center;
+    padding: 4px 16px 8px 8px;
+    border-left: 1px solid var(--border-color);
+  }
+
+  .ql-dest-btn {
+    height: 44px;
+  }
+
+  .ql-searchwrap {
+    padding-right: 8px;
+  }
+
+  .ql-results {
+    right: 8px;
+  }
+
+  .ql-tile:nth-child(n+13) {
+    display: flex;
+  }
+
+  .ql-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(88px, 1fr));
+    padding-right: 8px;
+  }
+
+  .ql-cart {
+    grid-area: cart;
+    position: static;
+    z-index: auto;
+    max-height: none;
+    min-height: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-left: 1px solid var(--border-color);
+    transform: none;
+    visibility: visible;
+    transition: none;
+    left: auto;
+    width: auto;
+    max-width: none;
+  }
+
+  .ql-cart.open {
+    transform: none;
+  }
+
+  .ql-cart-close {
+    display: none;
+  }
+
+  .ql-screen:not(:has(.ql-sheet:not([hidden]))) .ql-cart-backdrop {
+    display: none !important;
+  }
+
+  .ql-dock {
+    border-left: 1px solid var(--border-color);
+    box-shadow: none;
+  }
+
+  .ql-dock > * {
+    max-width: none;
+  }
+
+  /* Gio hang luon hien: khong can dong tom tat so mon / danh sach */
+  .ql-sum-text {
+    visibility: hidden;
+    flex: 0;
+    width: 0;
+  }
+
+  .ql-summary {
+    justify-content: flex-end;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .ql-chip {
+    height: 56px;
+    font-size: 17px;
+  }
+
+  .ql-complete {
+    height: 60px;
+    font-size: 17px;
+  }
+
+  .ql-toast {
+    left: auto;
+    right: 0;
+    width: 41.667%;
+    min-width: 340px;
+  }
+}
+
+/* ---------- Man hinh thap (vd: 360x640 khi dock dang mo): giu 12 o + dock khong cuon ---------- */
+@media (max-height: 720px) and (max-width: 899px) {
+  .ql-topbar { height: 44px; }
+  .ql-dest { padding: 6px 12px 2px; }
+  .ql-dest-btn { height: 36px; font-size: 12px; }
+  .ql-searchwrap { padding: 4px 12px 6px; }
+  .ql-search .search-input { height: 44px; }
+  .ql-square-btn { width: 44px; height: 44px; }
+  .ql-grid {
+    grid-template-rows: repeat(4, minmax(50px, 1fr));
+    gap: 6px;
+    padding: 0 12px 6px;
+  }
+  .ql-tile { min-height: 50px; padding: 6px 8px; }
+  .ql-tile-name { font-size: 13px; }
+  .ql-dock {
+    padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 5px;
+  }
+  .ql-summary { min-height: 36px; }
+  .ql-total { font-size: 24px; }
+  .ql-method-btn { height: 32px; font-size: 12px; }
+  .ql-tender { gap: 6px; }
+  .ql-chip { height: 40px; font-size: 14px; }
+  .ql-change-row { min-height: 28px; }
+  .ql-change { font-size: 20px; }
+  .ql-complete { height: 46px; font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ql-tile,
+  .ql-chip,
+  .ql-cart,
+  .ql-sheet,
+  .ql-toast {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media print {
+  body.quick-mode {
+    overflow: visible;
+  }
+
+  body.quick-mode #viewQuick,
+  body.quick-mode .ql-screen {
+    display: none !important;
+  }
+
+  body.quick-mode #receiptModal.active {
+    position: static;
+    background: #ffffff;
+    backdrop-filter: none;
+  }
+
+  body.quick-mode #receiptModal .modal-sheet {
+    max-height: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  body.quick-mode #receiptModal .modal-header,
+  body.quick-mode #receiptModal .modal-footer {
+    display: none;
+  }
+}

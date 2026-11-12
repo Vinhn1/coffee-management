@@ -6,6 +6,7 @@
   <title>Bụi Coffee - Quản lý Bán hàng</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/quick.css">
 </head>
 <body>
 
@@ -21,6 +22,10 @@
       </div>
     </div>
     <div class="header-actions">
+      <button type="button" class="btn-header-quick" id="btnHeaderQuick" title="Bán nhanh: tra cứu nước và tính tiền">
+        <span id="headerQuickIcon"></span>
+        <span>Bán nhanh</span>
+      </button>
       <div class="wifi-pill" title="Mật khẩu Wifi của quán">
         <span id="wifiIcon"></span>
         <span>Pass: 68686868</span>
@@ -61,7 +66,10 @@
           <span id="activeTableIcon"></span>
           <span id="activeTableTitle">Đang phục vụ: Bàn 01</span>
         </div>
-        <button class="btn-change-table" id="btnQuickSwitchTable">Đổi bàn</button>
+        <div class="active-table-banner-actions">
+          <button class="btn-change-table btn-menu-to-quick" id="btnMenuToQuick" type="button">Bán nhanh</button>
+          <button class="btn-change-table" id="btnQuickSwitchTable">Đổi bàn</button>
+        </div>
       </div>
 
       <!-- Ô tìm kiếm tức thì -->
@@ -225,7 +233,7 @@
             <b class="salary-stat-val" id="statWeekHours">0h</b>
           </div>
           <div class="salary-stat-col">
-            <span class="salary-stat-label">Thưởng (>7 ca):</span>
+            <span class="salary-stat-label">Thưởng (>= 7 ca):</span>
             <b class="salary-stat-val" id="statWeekBonus">0đ</b>
           </div>
         </div>
@@ -246,6 +254,134 @@
           </button>
         </div>
         <pre class="salary-export-content" id="salaryReportText">Đang tính toán...</pre>
+      </div>
+    </section>
+
+    <!-- VIEW 6: BAN NHANH - TRA CUU NUOC VA TINH TIEN SIEU TOC (che do quay thu ngan) -->
+    <section id="viewQuick" class="view-section">
+      <div class="ql-screen">
+
+        <!-- Thanh tren -->
+        <div class="ql-topbar">
+          <button type="button" class="ql-icon-btn" id="btnQuickBack" aria-label="Quay lại">
+            <span id="quickBackIcon"></span>
+          </button>
+          <div class="ql-title">Bán nhanh</div>
+          <button type="button" class="ql-icon-btn" id="btnQuickClear" aria-label="Xoá hết" hidden>
+            <span id="quickClearIcon"></span>
+          </button>
+        </div>
+
+        <!-- Hinh thuc: mang ve / tai quay / ban -->
+        <div class="ql-dest" id="quickDest" role="group" aria-label="Hình thức bán">
+          <button type="button" class="ql-dest-btn active" data-dest="takeaway">Mang về</button>
+          <button type="button" class="ql-dest-btn" data-dest="counter">Tại quầy</button>
+          <button type="button" class="ql-dest-btn" data-dest="table">Bàn --</button>
+        </div>
+
+        <!-- Tim kiem nhanh -->
+        <div class="ql-searchwrap">
+          <div class="ql-searchrow">
+            <div class="ql-search">
+              <span class="search-icon-left" id="quickSearchIcon"></span>
+              <input type="text" id="quickSearchInput" class="search-input ql-search-input"
+                placeholder="Tìm món (vd: 2cfs, bx, td)" autocomplete="off" autocapitalize="none"
+                spellcheck="false" inputmode="text" enterkeyhint="done"
+                role="combobox" aria-expanded="false" aria-controls="quickResults" aria-autocomplete="list">
+              <button type="button" id="quickSearchClear" class="search-clear-btn" aria-label="Xoá tìm kiếm"></button>
+            </div>
+            <button type="button" class="ql-square-btn" id="btnQuickFullMenu" aria-label="Xem toàn bộ thực đơn">
+              <span id="quickFullMenuIcon"></span>
+            </button>
+          </div>
+          <div class="ql-parse-chip" id="quickParseChip" hidden></div>
+          <div class="ql-results" id="quickResults" role="listbox" aria-label="Kết quả tìm món" hidden></div>
+        </div>
+
+        <!-- Luoi mon ban chay (JS render 15 o .ql-tile) -->
+        <div class="ql-grid" id="quickGrid" aria-label="Món bán chạy"></div>
+
+        <!-- Chi tiet don: cot phai tren tablet, ngan keo tren dien thoai -->
+        <div class="ql-cart-backdrop" id="quickCartBackdrop" hidden></div>
+        <div class="ql-cart" id="quickCartPanel">
+          <div class="ql-cart-head">
+            <div class="ql-cart-title">Chi tiết đơn</div>
+            <button type="button" class="ql-icon-btn ql-cart-close" id="btnQuickCartClose" aria-label="Đóng chi tiết đơn">
+              <span id="quickCartCloseIcon"></span>
+            </button>
+          </div>
+          <div class="ql-cart-list" id="quickCartList"></div>
+          <div class="ql-order-note-wrap">
+            <input type="text" id="quickOrderNoteInput" class="ql-order-note-input" placeholder="Ghi chú đơn (ít đá, mang về gấp...)" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Dock thanh toan -->
+        <div class="ql-dock">
+          <div class="ql-dock-empty" id="quickDockEmpty">Chạm món để bắt đầu</div>
+
+          <button type="button" class="ql-summary" id="quickSummary" hidden>
+            <span class="ql-sum-text">
+              <span class="ql-sum-count" id="quickSumCount">0 món</span>
+              <span class="ql-sum-list" id="quickSumList"></span>
+            </span>
+            <span class="ql-total" id="quickTotal" aria-live="polite">0đ</span>
+          </button>
+
+          <div class="ql-table-info" id="quickTableInfo" hidden></div>
+
+          <div class="ql-method" id="quickMethod" role="group" aria-label="Phương thức thanh toán" hidden>
+            <button type="button" class="ql-method-btn active" data-method="cash">Tiền mặt</button>
+            <button type="button" class="ql-method-btn" data-method="qr">Chuyển khoản</button>
+          </div>
+
+          <div class="ql-tender" id="quickTender" hidden>
+            <button type="button" class="ql-chip ql-chip-exact" data-cash="exact">Đủ tiền</button>
+            <button type="button" class="ql-chip" data-cash="20000">20k</button>
+            <button type="button" class="ql-chip" data-cash="50000">50k</button>
+            <button type="button" class="ql-chip" data-cash="100000">100k</button>
+            <button type="button" class="ql-chip" data-cash="200000">200k</button>
+            <button type="button" class="ql-chip" data-cash="500000">500k</button>
+          </div>
+
+          <div class="ql-change-row" id="quickChangeRow" hidden>
+            <div class="ql-change" id="quickChange" aria-live="polite">Khách đưa đủ</div>
+            <button type="button" class="ql-link-btn" id="btnQuickCustomCash">Nhập số khác</button>
+          </div>
+          <input type="text" id="quickCustomCashInput" class="search-input ql-custom-cash" inputmode="numeric"
+            autocomplete="off" placeholder="Số tiền khách đưa (vd: 70 = 70.000đ)" hidden>
+
+          <button type="button" class="ql-complete" id="btnQuickComplete" hidden>Hoàn tất</button>
+
+          <div class="ql-table-actions" id="quickTablePanel" hidden>
+            <button type="button" class="ql-complete" id="btnQuickSendToTable">Gửi vào bàn</button>
+            <button type="button" class="ql-secondary" id="btnQuickPayTable" hidden>Thanh toán bàn</button>
+          </div>
+        </div>
+
+        <!-- Ma QR chuyen khoan -->
+        <div class="ql-sheet" id="quickQrSheet" hidden>
+          <div class="ql-sheet-head">
+            <div class="ql-cart-title">Quét mã chuyển khoản</div>
+            <button type="button" class="ql-icon-btn" id="btnQuickQrClose" aria-label="Đóng mã QR">
+              <span id="quickQrCloseIcon"></span>
+            </button>
+          </div>
+          <div class="ql-qr-box" id="quickQrImg"></div>
+        </div>
+
+        <!-- Thong bao sau thanh toan (khong dung modal) -->
+        <div class="ql-toast" id="quickToast" role="status" aria-live="polite" hidden>
+          <div class="ql-toast-main">
+            <div class="ql-toast-received" id="quickToastReceived">Đã thu 0đ</div>
+            <div class="ql-toast-change" id="quickToastChange">Thối lại 0đ</div>
+          </div>
+          <div class="ql-toast-actions">
+            <button type="button" class="ql-toast-btn" id="btnQuickViewBill">Xem bill</button>
+            <button type="button" class="ql-toast-btn" id="btnQuickPrintBill">In bill</button>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -584,6 +720,11 @@
     </div>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <script defer src="js/data.js"></script>
+  <script defer src="js/icons.js"></script>
+  <script defer src="js/quick.js"></script>
+  <script defer src="js/store.js"></script>
+  <script defer src="js/quick-ui.js"></script>
+  <script defer src="js/app.js"></script>
 </body>
 </html>

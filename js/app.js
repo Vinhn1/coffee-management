@@ -1,6 +1,10 @@
-import { CATEGORIES, SHOP_INFO } from "./data.js";
-import { ICONS } from "./icons.js";
-import { store } from "./store.js";
+(function (root, factory) {
+  const deps = (typeof require === "function" && typeof module === "object" && module.exports)
+    ? Object.assign({}, require("./data.js"), require("./icons.js"), require("./quick-ui.js"), require("./store.js"))
+    : (root.BuiCoffee || {});
+  factory(deps);
+})(typeof globalThis !== "undefined" ? globalThis : this, function (deps) {
+const { CATEGORIES, DRINK_CATEGORY_DEFAULT_IMAGES, PAYMENT_QR, SHOP_INFO, ICONS, QuickRegister, store } = deps;
 
 // Helper bỏ dấu tiếng Việt để tìm kiếm nhanh
 function removeVietnameseTones(str) {
@@ -23,6 +27,14 @@ function formatMoney(amount) {
   return (amount || 0).toLocaleString("vi-VN") + "đ";
 }
 
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 class CoffeeApp {
   constructor() {
     this.currentView = "viewTables";
@@ -42,6 +54,7 @@ class CoffeeApp {
     this.initSettingsCategories();
     this.initSearch();
     this.initEventListeners();
+    this.quickRegister = new QuickRegister(this);
     this.renderAll();
   }
 
@@ -111,6 +124,9 @@ class CoffeeApp {
     if (!select) return;
     const cats = CATEGORIES.filter(c => c.id !== "all");
     select.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+    if (cats.some(c => c.id === "other")) {
+      select.value = "other";
+    }
   }
 
   // Điều hướng các tab chính
@@ -125,6 +141,7 @@ class CoffeeApp {
   }
 
   switchView(viewId) {
+    document.body.classList.remove("quick-mode");
     this.currentView = viewId;
     document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
     document.querySelectorAll(".bottom-nav .nav-item").forEach(nav => nav.classList.remove("active"));
@@ -259,7 +276,9 @@ class CoffeeApp {
 
     document.getElementById("btnFinishReceiptBtn").addEventListener("click", () => {
       this.closeModal("receiptModal");
-      this.switchView("viewTables");
+      if (!document.body.classList.contains("quick-mode")) {
+        this.switchView("viewTables");
+      }
     });
 
     document.getElementById("btnPrintReceiptBtn").addEventListener("click", () => {
@@ -609,6 +628,7 @@ class CoffeeApp {
     this.renderReports();
     this.renderTimekeeping();
     this.updateBadges();
+    if (this.quickRegister) this.quickRegister.onDataChanged();
   }
 
   // Cập nhật số liệu trên Header/Badge
@@ -748,21 +768,31 @@ class CoffeeApp {
 
     const catMap = {};
     CATEGORIES.forEach(c => catMap[c.id] = c.name);
+    const defaultImgs = DRINK_CATEGORY_DEFAULT_IMAGES || {};
 
-    container.innerHTML = menu.map(item => `
-      <div class="menu-item-card" data-id="${item.id}">
-        <div class="menu-item-info">
-          <div class="menu-item-name">${item.name}</div>
-          <div class="menu-item-category">${catMap[item.category] || ""}</div>
-          <div class="menu-item-price">${formatMoney(item.price)}</div>
+    container.innerHTML = menu.map(item => {
+      const thumb = item.image || defaultImgs[item.category] || defaultImgs.other || "";
+      const safeName = escapeHtml(item.name);
+      return `
+        <div class="menu-item-card" data-id="${item.id}">
+          ${thumb ? `
+            <div class="menu-item-thumb">
+              <img src="${escapeHtml(thumb)}" alt="${safeName}" loading="lazy" onerror="this.parentElement.style.display='none'">
+            </div>
+          ` : ""}
+          <div class="menu-item-info">
+            <div class="menu-item-name">${safeName}</div>
+            <div class="menu-item-category">${escapeHtml(catMap[item.category] || "")}</div>
+            <div class="menu-item-price">${formatMoney(item.price)}</div>
+          </div>
+          <div class="menu-item-action">
+            <button class="btn-add-item" data-add-id="${item.id}" title="Thêm vào bàn">
+              ${ICONS.plus}
+            </button>
+          </div>
         </div>
-        <div class="menu-item-action">
-          <button class="btn-add-item" data-add-id="${item.id}" title="Thêm vào bàn">
-            ${ICONS.plus}
-          </button>
-        </div>
-      </div>
-    `).join("");
+      `;
+    }).join("");
 
     container.querySelectorAll(".btn-add-item").forEach(btn => {
       btn.addEventListener("click", (e) => {
@@ -973,12 +1003,12 @@ class CoffeeApp {
       });
     });
 
-    // Cập nhật mã VietQR
+    // Cập nhật mã QR thanh toán của quán (ảnh cắt trực tiếp từ mã Tingee/VPBank)
     const qrTransferNote = `BuiCoffee ${activeTable.code}`;
-    document.getElementById("qrTransferNote").textContent = qrTransferNote;
-    const qrUrl = `https://api.vietqr.io/image/970422-0988888888-compact2.png?amount=${total}&addInfo=${encodeURIComponent(qrTransferNote)}&accountName=BUI%20COFFEE`;
+    document.getElementById("qrTransferNote").textContent = `${qrTransferNote} (${PAYMENT_QR.bankName} - ${PAYMENT_QR.accountName})`;
     document.getElementById("vietQrImgContainer").innerHTML = `
-      <img src="${qrUrl}" alt="VietQR" style="width: 200px; height: 200px; object-fit: contain; display: block; margin: 0 auto;" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=\\'font-size:12px;padding:20px;\\'>Quét mã QR thanh toán ${formatMoney(total)}</p>'">
+      <div class="qr-amount-banner">Số tiền cần chuyển: <b>${formatMoney(total)}</b></div>
+      <img src="${PAYMENT_QR.image}" alt="Mã QR Bụi Coffee" class="qr-payment-photo" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=\\'font-size:12px;padding:20px;\\'>Quét mã QR thanh toán ${formatMoney(total)} - ${PAYMENT_QR.accountName}</p>'">
     `;
 
     this.setPaymentMethod("cash");
@@ -1036,17 +1066,17 @@ class CoffeeApp {
       <div class="receipt-header">
         <div class="receipt-title">${SHOP_INFO.name.toUpperCase()}</div>
         <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">${SHOP_INFO.slogan}</div>
-        <div style="font-size: 12px; margin-top: 4px;">Pass Wifi: <b>${invoice.wifiPass || SHOP_INFO.wifiPass}</b></div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Số HĐ: ${invoice.id} | Bàn: ${invoice.tableName}</div>
-        ${invoice.tableNote ? `<div style="font-size: 11px; color: var(--primary); margin-top: 2px;">Ghi chú bàn: <b>${invoice.tableNote}</b></div>` : ""}
+        <div style="font-size: 12px; margin-top: 4px;">Pass Wifi: <b>${escapeHtml(invoice.wifiPass || SHOP_INFO.wifiPass)}</b></div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Số HĐ: ${escapeHtml(invoice.id)} | ${invoice.isQuick ? "Loại" : "Bàn"}: ${escapeHtml(invoice.tableName)}</div>
+        ${invoice.tableNote ? `<div style="font-size: 11px; color: var(--primary); margin-top: 2px;">Ghi chú bàn: <b>${escapeHtml(invoice.tableNote)}</b></div>` : ""}
         <div style="font-size: 11px; color: var(--text-muted);">${new Date(invoice.paidAt).toLocaleString("vi-VN")}</div>
       </div>
       <div style="margin-bottom: 10px;">
         ${invoice.items.map(item => `
           <div class="receipt-row">
             <div>
-              <span>${item.name}</span>
-              ${item.note ? `<div style="font-size: 10px; color: var(--text-muted);">${item.note}</div>` : ""}
+              <span>${escapeHtml(item.name)}</span>
+              ${item.note ? `<div style="font-size: 10px; color: var(--text-muted);">${escapeHtml(item.note)}</div>` : ""}
             </div>
             <span>${item.quantity} x ${formatMoney(item.price)}</span>
           </div>
@@ -1079,12 +1109,14 @@ class CoffeeApp {
   }
 
   // MODAL CHUYỂN BÀN
-  openTransferModal(isSwitchOnly = false) {
+  openTransferModal(isSwitchOnly = false, onPick = null) {
     const activeTable = store.getActiveTable();
     const titleEl = document.getElementById("transferModalTitle");
     const container = document.getElementById("transferTablesGrid");
 
-    if (isSwitchOnly) {
+    if (onPick) {
+      titleEl.textContent = "Chọn bàn nhận món";
+    } else if (isSwitchOnly) {
       titleEl.textContent = "Chọn bàn phục vụ";
     } else {
       titleEl.textContent = `Chuyển/Gộp ${activeTable.name} sang bàn khác`;
@@ -1109,6 +1141,11 @@ class CoffeeApp {
     container.querySelectorAll("[data-transfer-id]").forEach(card => {
       card.addEventListener("click", () => {
         const targetId = Number(card.getAttribute("data-transfer-id"));
+        if (onPick) {
+          onPick(targetId);
+          this.closeModal("transferModal");
+          return;
+        }
         if (isSwitchOnly) {
           store.setActiveTableId(targetId);
           this.closeModal("transferModal");
@@ -1372,6 +1409,9 @@ class CoffeeApp {
       const mult = Number(dayData.holidayMultiplier) || 1;
       const dayDetail = calc.dayDetails.find(detail => detail.dateStr === d.dateStr);
       const customShifts = Array.isArray(dayData.customShifts) ? dayData.customShifts : [];
+      const isMorningAfternoon = Boolean(dayData.morning && dayData.afternoon && !dayData.evening);
+      const isAfternoonEvening = Boolean(dayData.afternoon && dayData.evening && !dayData.morning);
+      const isMorningEvening = Boolean(dayData.morning && dayData.evening && !dayData.afternoon);
 
       return `
         <div class="day-card ${d.isToday ? "today" : ""}">
@@ -1387,6 +1427,18 @@ class CoffeeApp {
                 <option value="3" ${mult === 3 ? "selected" : ""}>Đại lễ (x3)</option>
               </select>
             </div>
+          </div>
+
+          <div class="shift-combos-row">
+            <button type="button" class="shift-combo-btn ${isMorningAfternoon ? "active" : ""}" data-date="${d.dateStr}" data-combo="morning-afternoon" title="Chọn nhanh Sáng + Trưa">
+              Sáng + Trưa (11,5h)
+            </button>
+            <button type="button" class="shift-combo-btn ${isAfternoonEvening ? "active" : ""}" data-date="${d.dateStr}" data-combo="afternoon-evening" title="Chọn nhanh Trưa + Tối liên tục">
+              Trưa + Tối (12h)
+            </button>
+            <button type="button" class="shift-combo-btn ${isMorningEvening ? "active" : ""}" data-date="${d.dateStr}" data-combo="morning-evening" title="Chọn nhanh Sáng + Tối">
+              Sáng + Tối (12h)
+            </button>
           </div>
 
           <div class="shifts-grid">
@@ -1427,6 +1479,16 @@ class CoffeeApp {
         </div>
       `;
     }).join("");
+
+    // Gắn sự kiện click chọn combo 2 ca liên tục
+    container.querySelectorAll(".shift-combo-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dateStr = btn.getAttribute("data-date");
+        const combo = btn.getAttribute("data-combo");
+        store.setShiftCombo(weekKey, dateStr, combo);
+        this.renderTimekeeping();
+      });
+    });
 
     // Gắn sự kiện click chọn ca làm
     container.querySelectorAll(".shift-btn").forEach(btn => {
@@ -1540,6 +1602,12 @@ class CoffeeApp {
 }
 
 // Khởi chạy ứng dụng khi DOM sẵn sàng
-document.addEventListener("DOMContentLoaded", () => {
-  window.coffeeApp = new CoffeeApp();
+const initCoffeeApp = () => {
+  if (!window.coffeeApp) window.coffeeApp = new CoffeeApp();
+};
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCoffeeApp);
+} else {
+  initCoffeeApp();
+}
 });
