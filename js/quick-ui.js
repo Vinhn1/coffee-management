@@ -65,6 +65,7 @@ class QuickRegister {
     this.toastMode = "invoice";
     this.busy = false;
     this.fullMenuCategory = "all";
+    this.customQty = 1;
 
     this._cacheDom();
     this._ensureAuxUi();
@@ -85,6 +86,7 @@ class QuickRegister {
       destGroup: g("quickDest"),
       searchInput: g("quickSearchInput"),
       searchClear: g("quickSearchClear"),
+      btnAddCustom: g("btnQuickAddCustom"),
       btnFullMenu: g("btnQuickFullMenu"),
       parseChip: g("quickParseChip"),
       results: g("quickResults"),
@@ -95,8 +97,10 @@ class QuickRegister {
       cartList: g("quickCartList"),
       orderNoteInput: g("quickOrderNoteInput"),
       dockEmpty: g("quickDockEmpty"),
+      btnEmptyCustom: g("btnQuickEmptyCustom"),
       summaryRow: g("quickSummaryRow"),
       summary: g("quickSummary"),
+      btnDockCustom: g("btnQuickDockCustom"),
       btnDelLast: g("btnQuickDelLast"),
       sumCount: g("quickSumCount"),
       sumList: g("quickSumList"),
@@ -118,6 +122,17 @@ class QuickRegister {
       qrSheet: g("quickQrSheet"),
       btnQrClose: g("btnQuickQrClose"),
       qrImg: g("quickQrImg"),
+      customSheet: g("quickCustomSheet"),
+      btnCustomClose: g("btnQuickCustomClose"),
+      customPriceInput: g("quickCustomPriceInput"),
+      customPricePreview: g("quickCustomPricePreview"),
+      customPriceChips: g("quickCustomPriceChips"),
+      customNameInput: g("quickCustomNameInput"),
+      customNameChips: g("quickCustomNameChips"),
+      btnCustomQtyMinus: g("btnQuickCustomQtyMinus"),
+      btnCustomQtyPlus: g("btnQuickCustomQtyPlus"),
+      customQtyVal: g("quickCustomQtyVal"),
+      btnCustomConfirm: g("btnQuickCustomConfirm"),
       toast: g("quickToast"),
       toastReceived: g("quickToastReceived"),
       toastChange: g("quickToastChange"),
@@ -169,9 +184,11 @@ class QuickRegister {
       quickClearIcon: ICONS.trash,
       quickSearchIcon: ICONS.search,
       quickSearchClear: ICONS.close,
+      quickCustomBtnIcon: ICONS.plus,
       quickFullMenuIcon: ICONS.menu,
       quickCartCloseIcon: ICONS.close,
-      quickQrCloseIcon: ICONS.close
+      quickQrCloseIcon: ICONS.close,
+      quickCustomCloseIcon: ICONS.close
     };
     Object.entries(map).forEach(([id, svg]) => {
       const el = document.getElementById(id);
@@ -309,8 +326,7 @@ class QuickRegister {
         if (customBtn) {
           const raw = d.searchInput ? d.searchInput.value.trim() : "";
           this._clearSearch(false);
-          this.close();
-          this.app.openCustomItemModal(raw);
+          this._openCustomSheet(raw);
           return;
         }
         const row = e.target.closest(".ql-result");
@@ -572,6 +588,77 @@ class QuickRegister {
         this._addItem(entry.item, 1);
         this._closeSheets();
       });
+    }
+
+    // Cong tien / mon ngoai menu ngay trong Ban nhanh
+    [d.btnAddCustom, d.btnEmptyCustom, d.btnDockCustom].forEach(btn => {
+      if (btn) {
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          this._openCustomSheet();
+        });
+      }
+    });
+
+    if (d.btnCustomClose) {
+      d.btnCustomClose.addEventListener("click", () => this._closeSheets());
+    }
+
+    if (d.customPriceInput) {
+      d.customPriceInput.addEventListener("input", () => this._updateCustomSheetPreview());
+      d.customPriceInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          this._submitCustomSheet();
+        }
+      });
+    }
+
+    if (d.customNameInput) {
+      d.customNameInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          this._submitCustomSheet();
+        }
+      });
+    }
+
+    if (d.customPriceChips) {
+      d.customPriceChips.addEventListener("click", e => {
+        const chip = e.target.closest("[data-price]");
+        if (!chip || !d.customPriceInput) return;
+        const val = Number(chip.getAttribute("data-price"));
+        d.customPriceInput.value = val.toLocaleString("vi-VN");
+        this._updateCustomSheetPreview();
+      });
+    }
+
+    if (d.customNameChips) {
+      d.customNameChips.addEventListener("click", e => {
+        const chip = e.target.closest("[data-name]");
+        if (!chip || !d.customNameInput) return;
+        d.customNameInput.value = chip.getAttribute("data-name") || "";
+      });
+    }
+
+    if (d.btnCustomQtyMinus) {
+      d.btnCustomQtyMinus.addEventListener("click", () => {
+        if (this.customQty > 1) {
+          this.customQty -= 1;
+          if (d.customQtyVal) d.customQtyVal.textContent = String(this.customQty);
+        }
+      });
+    }
+
+    if (d.btnCustomQtyPlus) {
+      d.btnCustomQtyPlus.addEventListener("click", () => {
+        this.customQty += 1;
+        if (d.customQtyVal) d.customQtyVal.textContent = String(this.customQty);
+      });
+    }
+
+    if (d.btnCustomConfirm) {
+      d.btnCustomConfirm.addEventListener("click", () => this._submitCustomSheet());
     }
 
     // Dam bao luu gio hang khi chuyen tab / thoat trinh duyet
@@ -925,7 +1012,7 @@ class QuickRegister {
     this.dom.cartList.innerHTML = items.map(item => `
       <div class="ql-cart-row" data-id="${item.itemId}">
         <div class="ql-cart-info">
-          <div class="ql-cart-name">${escapeHtml(item.name)}</div>
+          <div class="ql-cart-name">${escapeHtml(item.name)}${item.isCustom ? ` <span class="order-item-custom-badge">Ngoài menu</span>` : ""}</div>
           <div class="ql-cart-sub">
             <span>${formatMoney(item.price)} x ${item.quantity}</span>
             <button type="button" class="ql-cart-btn-note ${item.note ? "has-note" : ""}" data-act="note" data-id="${item.itemId}">
@@ -1232,11 +1319,55 @@ class QuickRegister {
     }).join("");
   }
 
+  _openCustomSheet(prefilledName = "") {
+    const d = this.dom;
+    if (!d.customSheet) return;
+    this._closeSheets();
+    this._hideToast();
+    this.customQty = 1;
+    if (d.customQtyVal) d.customQtyVal.textContent = "1";
+    if (d.customPriceInput) d.customPriceInput.value = "";
+    if (d.customNameInput) d.customNameInput.value = prefilledName || "";
+    this._updateCustomSheetPreview();
+    if (d.cartBackdrop) d.cartBackdrop.hidden = false;
+    d.customSheet.hidden = false;
+    setTimeout(() => {
+      if (d.customPriceInput) d.customPriceInput.focus();
+    }, 60);
+  }
+
+  _updateCustomSheetPreview() {
+    const d = this.dom;
+    if (!d.customPriceInput || !d.customPricePreview) return;
+    const parsed = parseMoneyInput(d.customPriceInput.value.trim());
+    d.customPricePreview.textContent = parsed ? `= ${formatMoney(parsed)}` : "0đ";
+  }
+
+  _submitCustomSheet() {
+    const d = this.dom;
+    if (!d.customPriceInput) return;
+    const parsedPrice = parseMoneyInput(d.customPriceInput.value.trim());
+    if (!parsedPrice || parsedPrice <= 0) {
+      d.customPriceInput.focus();
+      return;
+    }
+    const name = d.customNameInput ? d.customNameInput.value.trim() : "";
+    const added = store.quickAddCustom({
+      name,
+      price: parsedPrice,
+      quantity: this.customQty
+    });
+    if (!added) return;
+    this._closeSheets();
+    this._onCartMutated();
+  }
+
   _isSheetOpen() {
     const cartOpen = this.dom.cartPanel && this.dom.cartPanel.classList.contains("open");
     const qrOpen = this.dom.qrSheet && !this.dom.qrSheet.hidden;
     const menuOpen = this.dom.fullMenuSheet && !this.dom.fullMenuSheet.hidden;
-    return Boolean(cartOpen || qrOpen || menuOpen);
+    const customOpen = this.dom.customSheet && !this.dom.customSheet.hidden;
+    return Boolean(cartOpen || qrOpen || menuOpen || customOpen);
   }
 
   _closeSheets() {
@@ -1244,6 +1375,7 @@ class QuickRegister {
     if (this.dom.cartPanel) this.dom.cartPanel.classList.remove("open");
     if (this.dom.qrSheet) this.dom.qrSheet.hidden = true;
     if (this.dom.fullMenuSheet) this.dom.fullMenuSheet.hidden = true;
+    if (this.dom.customSheet) this.dom.customSheet.hidden = true;
   }
 }
 

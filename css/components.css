@@ -1247,3 +1247,105 @@
   word-break: break-word;
   user-select: all;
 }
+
+/* Mo rong form tinh tien ban & o nhap tien trong checkoutModal */
+.checkout-modal-sheet {
+  max-width: 620px;
+  max-height: 92vh;
+}
+
+.checkout-modal-body {
+  padding: 18px 20px;
+}
+
+.checkout-cash-input {
+  width: 100%;
+  height: 54px;
+  padding: 0 14px !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  border: 2px solid var(--primary) !important;
+  border-radius: var(--radius-md) !important;
+  margin-bottom: 10px;
+  color: var(--text-main);
+  background: #ffffff;
+}
+
+.checkout-quick-cash-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.checkout-quick-cash-row .btn-quick-cash {
+  height: 40px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.checkout-custom-wrap {
+  margin-bottom: 14px;
+}
+
+.checkout-custom-toggle {
+  width: 100%;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  border-style: dashed;
+}
+
+.checkout-custom-box {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkout-custom-box[hidden] {
+  display: none !important;
+}
+
+.checkout-custom-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkout-custom-price {
+  height: 46px !important;
+  padding: 0 12px !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  border: 1.5px solid var(--primary) !important;
+}
+
+.checkout-custom-name {
+  height: 42px !important;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+}
+
+.checkout-custom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.checkout-custom-chips .btn-checkout-custom-price {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.checkout-custom-submit {
+  height: 42px;
+  font-size: 13.5px;
+}

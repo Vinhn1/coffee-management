@@ -249,6 +249,33 @@ body.quick-mode #viewQuick {
   display: inline-flex;
 }
 
+.ql-add-custom-btn {
+  height: 48px;
+  padding: 0 11px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--primary-light);
+  color: var(--ql-brown);
+  border: 1.5px solid var(--ql-brown);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.ql-add-custom-btn:active {
+  background: #f5e6d8;
+}
+
+.ql-add-custom-btn span {
+  display: inline-flex;
+}
+
 .ql-parse-chip {
   margin-top: 6px;
   padding: 6px 12px;
@@ -506,23 +533,27 @@ body.quick-mode #viewQuick {
   font-weight: 700;
 }
 
-/* ---------- Dock thanh toan ---------- */
+/* ---------- Dock thanh toan (mo rong form tinh tien & o nhap tien) ---------- */
 .ql-dock {
   grid-area: dock;
   background: #ffffff;
   border-top: 1px solid var(--border-color);
   box-shadow: 0 -4px 16px rgba(45, 30, 20, 0.08);
-  padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  max-height: 58dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ql-dock-empty {
-  height: 38px;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
@@ -551,14 +582,32 @@ body.quick-mode #viewQuick {
   cursor: pointer;
 }
 
+.ql-sum-add-btn {
+  height: 32px;
+  padding: 0 10px;
+  background: var(--primary-light);
+  color: var(--ql-brown);
+  border: 1px solid var(--ql-brown);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ql-sum-add-btn:active {
+  background: #f5e6d8;
+}
+
 .ql-sum-del-btn {
-  height: 28px;
+  height: 32px;
   padding: 0 10px;
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fecaca;
   border-radius: var(--radius-sm);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
@@ -577,7 +626,7 @@ body.quick-mode #viewQuick {
 }
 
 .ql-sum-count {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -590,7 +639,7 @@ body.quick-mode #viewQuick {
 }
 
 .ql-total {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   line-height: 1.1;
   color: var(--ql-ink);
@@ -598,29 +647,29 @@ body.quick-mode #viewQuick {
 }
 
 .ql-table-info {
-  padding: 4px 8px;
+  padding: 6px 10px;
   background: var(--status-occupied-bg);
   border: 1px solid #fde68a;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--status-occupied);
 }
 
 .ql-method {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .ql-method-btn {
   flex: 1;
-  height: 30px;
+  height: 36px;
   background: #ffffff;
   color: var(--ql-ink);
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-full);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -630,36 +679,37 @@ body.quick-mode #viewQuick {
   color: #ffffff;
 }
 
-/* Khối tiền mặt: Ưu tiên ô nhập số tiền, các số có sẵn thu nhỏ nằm ở dưới */
+/* Khoi tien mat: O nhap tien mo rong to ro, cac muc tien goi y chia luoi 3x2 de bam */
 .ql-cash-section {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
   width: 100%;
 }
 
 .ql-cash-input-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: #ffffff;
-  border: 1.5px solid var(--ql-brown);
-  border-radius: var(--radius-sm);
-  padding: 2px 8px;
-  height: 36px;
+  border: 2px solid var(--ql-brown);
+  border-radius: var(--radius-md);
+  padding: 4px 12px;
+  height: 52px;
   cursor: text;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .ql-cash-input-row:focus-within {
   border-color: var(--ql-brown-dark, #4b2612);
-  box-shadow: 0 0 0 2px rgba(92, 49, 23, 0.18);
+  box-shadow: 0 0 0 3px rgba(92, 49, 23, 0.2);
 }
 
 .ql-cash-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ql-brown);
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
@@ -669,11 +719,12 @@ body.quick-mode #viewQuick {
 .ql-cash-input {
   flex: 1;
   min-width: 0;
+  width: 100%;
   height: 100%;
   border: none;
   outline: none;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: var(--ql-ink);
   background: transparent;
   cursor: text;
@@ -686,18 +737,18 @@ body.quick-mode #viewQuick {
 }
 
 .ql-cash-input::placeholder {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-muted);
 }
 
 .ql-cash-clear-btn {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   background: #f3f4f6;
   border: none;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   color: var(--text-muted);
   cursor: pointer;
@@ -708,21 +759,20 @@ body.quick-mode #viewQuick {
 }
 
 .ql-tender-chips {
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   padding: 1px 0;
 }
 
 .ql-chip {
-  height: 28px;
-  padding: 0 10px;
+  height: 36px;
+  padding: 0 8px;
   background: #ffffff;
   color: var(--ql-ink);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
@@ -753,18 +803,18 @@ body.quick-mode #viewQuick {
   color: var(--text-muted);
 }
 
-/* Hàng hành động Hoàn tất + Tiền thừa */
+/* Hang hanh dong Hoan tat + Tien thua */
 .ql-action-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
 .ql-change {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -798,16 +848,17 @@ body.quick-mode #viewQuick {
 }
 
 .ql-complete {
-  height: 42px;
-  padding: 0 16px;
+  height: 48px;
+  min-width: 148px;
+  padding: 0 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--ql-brown);
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
@@ -1034,6 +1085,123 @@ body.quick-mode #viewQuick {
   border: 1px solid var(--border-color);
 }
 
+/* ---------- Sheet cong tien / mon ngoai menu ---------- */
+.ql-custom-body {
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.ql-custom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ql-custom-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ql-custom-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.ql-custom-preview {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ql-brown);
+}
+
+.ql-custom-money-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 2px solid var(--ql-brown);
+  border-radius: var(--radius-md);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ql-ink);
+  outline: none;
+  box-sizing: border-box;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ql-custom-money-input::placeholder {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.ql-custom-text-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ql-ink);
+  outline: none;
+  box-sizing: border-box;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ql-custom-text-input:focus {
+  border-color: var(--ql-brown);
+}
+
+.ql-custom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ql-name-chip {
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg-surface);
+  color: var(--ql-ink);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ql-name-chip:active {
+  background: var(--primary-light);
+  border-color: var(--ql-brown);
+}
+
+.ql-custom-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.ql-custom-qty {
+  height: 48px;
+  padding: 0 6px;
+  gap: 8px;
+}
+
+.ql-custom-submit {
+  flex: 1;
+  height: 48px;
+}
+
 /* ---------- Thong bao sau thanh toan ---------- */
 .ql-toast {
   position: absolute;
@@ -1250,14 +1418,22 @@ body.quick-mode #viewQuick {
     pointer-events: none;
   }
 
+  .ql-cash-input-row {
+    height: 54px;
+  }
+
+  .ql-cash-input {
+    font-size: 20px;
+  }
+
   .ql-chip {
-    height: 56px;
-    font-size: 17px;
+    height: 44px;
+    font-size: 15px;
   }
 
   .ql-complete {
-    height: 60px;
-    font-size: 17px;
+    height: 56px;
+    font-size: 16px;
   }
 
   .ql-toast {
@@ -1268,16 +1444,18 @@ body.quick-mode #viewQuick {
   }
 }
 
-/* ---------- Man hinh thap (vd: 360x640 khi dock dang mo): giu 12 o + dock khong cuon ---------- */
+/* ---------- Man hinh thap (vd: 360x640): giu form tinh tien & o nhap tien rong rai, luoi mon tu cuon ---------- */
 @media (max-height: 720px) and (max-width: 899px) {
   .ql-topbar { height: 44px; }
   .ql-dest { padding: 4px 10px 2px; }
   .ql-dest-btn { height: 34px; font-size: 12px; }
   .ql-searchwrap { padding: 2px 10px 4px; }
-  .ql-search .search-input { height: 40px; }
-  .ql-square-btn { width: 40px; height: 40px; }
+  .ql-search .search-input { height: 42px; }
+  .ql-square-btn { width: 42px; height: 42px; }
+  .ql-add-custom-btn { height: 42px; padding: 0 9px; font-size: 12px; }
   .ql-grid {
-    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(70px, auto);
     gap: 5px;
     padding: 0 8px 4px;
   }
@@ -1286,16 +1464,17 @@ body.quick-mode #viewQuick {
   .ql-tile-name { font-size: 11px; }
   .ql-tile-price { font-size: 11px; }
   .ql-dock {
-    padding: 4px 10px calc(6px + env(safe-area-inset-bottom, 0px));
-    gap: 4px;
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+    gap: 6px;
+    max-height: 60dvh;
   }
-  .ql-summary { min-height: 32px; }
-  .ql-total { font-size: 18px; }
-  .ql-method-btn { height: 28px; font-size: 11.5px; }
-  .ql-cash-input-row { height: 34px; }
-  .ql-cash-input { font-size: 14px; }
-  .ql-chip { height: 26px; font-size: 11.5px; padding: 0 8px; }
-  .ql-complete { height: 38px; font-size: 13px; }
+  .ql-summary { min-height: 34px; }
+  .ql-total { font-size: 20px; }
+  .ql-method-btn { height: 34px; font-size: 12.5px; }
+  .ql-cash-input-row { height: 48px; }
+  .ql-cash-input { font-size: 18px; }
+  .ql-chip { height: 34px; font-size: 12.5px; padding: 0 6px; }
+  .ql-complete { height: 46px; font-size: 14.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

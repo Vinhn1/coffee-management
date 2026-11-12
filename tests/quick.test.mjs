@@ -509,3 +509,64 @@ test("cash input field: markup attributes, styling contract, and parseMoneyInput
   assert.equal(parseMoneyInput("200000"), 200000);
   assert.equal(parseMoneyInput(""), null);
 });
+
+test("store: quickAddCustom optional name, merge, validation, and quickSendToTable preserves isCustom", async () => {
+  const { store } = await freshStore();
+
+  assert.equal(store.quickAddCustom({ price: 0 }), null);
+  assert.equal(store.quickAddCustom({ price: -5000 }), null);
+  assert.equal(store.quickAddCustom({ name: "Mon khong hop le", price: "abc" }), null);
+
+  assert.ok(store.quickAddCustom({ price: 15000 }));
+  assert.ok(store.quickAddCustom({ name: "  ", price: 15000 }));
+  assert.ok(store.quickAddCustom({ name: "Banh trang tron", price: 25000, quantity: 2 }));
+
+  const quick = store.getQuickOrder();
+  assert.equal(quick.items.length, 2);
+  const anon = quick.items.find(i => i.name === "Món ngoài menu");
+  assert.ok(anon);
+  assert.equal(anon.isCustom, true);
+  assert.equal(anon.quantity, 2);
+  assert.equal(anon.price, 15000);
+
+  const named = quick.items.find(i => i.name === "Banh trang tron");
+  assert.ok(named);
+  assert.equal(named.isCustom, true);
+  assert.equal(named.quantity, 2);
+  assert.equal(store.getQuickTotal(), 2 * 15000 + 2 * 25000);
+
+  const sendRes = store.quickSendToTable(3);
+  assert.equal(sendRes.ok, true);
+  const table3 = store.getTable(3);
+  assert.equal(table3.totalAmount, 80000);
+  assert.equal(table3.orderItems.every(i => i.isCustom === true), true);
+  assert.equal(store.getQuickCount(), 0);
+});
+
+test("off-menu item & expanded payment form: markup and checkout cash parsing", async () => {
+  const fs = await import("node:fs");
+  const html = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const appJs = fs.readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+  const quickUi = fs.readFileSync(new URL("../js/quick-ui.js", import.meta.url), "utf8");
+
+  for (const id of [
+    "btnQuickAddCustom",
+    "btnQuickEmptyCustom",
+    "btnQuickDockCustom",
+    "quickCustomSheet",
+    "quickCustomPriceInput",
+    "quickCustomNameInput",
+    "btnCheckoutAddCustom",
+    "checkoutCustomBox",
+    "checkoutCustomPrice",
+    "checkoutCustomName",
+    "customerCashInput"
+  ]) {
+    assert.ok(html.includes(`id="${id}"`), `must include #${id}`);
+  }
+
+  assert.ok(html.includes("checkout-modal-sheet"), "checkout modal must use expanded sheet class");
+  assert.ok(appJs.includes("addCustomItemDuringCheckout"), "app.js must handle checkout custom items");
+  assert.ok(appJs.includes("_parseCheckoutCashInput"), "app.js must parse checkout cash with parseMoneyInput");
+  assert.ok(quickUi.includes("_openCustomSheet"), "quick-ui.js must open quick custom sheet");
+});

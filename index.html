@@ -290,6 +290,10 @@
                 role="combobox" aria-expanded="false" aria-controls="quickResults" aria-autocomplete="list">
               <button type="button" id="quickSearchClear" class="search-clear-btn" aria-label="Xoá tìm kiếm"></button>
             </div>
+            <button type="button" class="ql-add-custom-btn" id="btnQuickAddCustom" aria-label="Cộng tiền món ngoài menu" title="Cộng tiền món ngoài menu">
+              <span id="quickCustomBtnIcon"></span>
+              <span>Món ngoài</span>
+            </button>
             <button type="button" class="ql-square-btn" id="btnQuickFullMenu" aria-label="Xem toàn bộ thực đơn">
               <span id="quickFullMenuIcon"></span>
             </button>
@@ -318,7 +322,10 @@
 
         <!-- Dock thanh toan -->
         <div class="ql-dock">
-          <div class="ql-dock-empty" id="quickDockEmpty">Chạm món để bắt đầu</div>
+          <div class="ql-dock-empty" id="quickDockEmpty">
+            <span>Chạm món để bắt đầu</span>
+            <button type="button" class="ql-sum-add-btn" id="btnQuickEmptyCustom">+ Cộng tiền món ngoài</button>
+          </div>
 
           <div class="ql-summary-row" id="quickSummaryRow" hidden>
             <button type="button" class="ql-summary" id="quickSummary">
@@ -328,6 +335,7 @@
               </span>
               <span class="ql-total" id="quickTotal" aria-live="polite">0đ</span>
             </button>
+            <button type="button" class="ql-sum-add-btn" id="btnQuickDockCustom" title="Cộng thêm tiền món ngoài menu">+ Món ngoài</button>
             <button type="button" class="ql-sum-del-btn" id="btnQuickDelLast" title="Hủy món vừa thêm" aria-label="Xóa món">Xóa món</button>
           </div>
 
@@ -338,12 +346,12 @@
             <button type="button" class="ql-method-btn" data-method="qr">Chuyển khoản</button>
           </div>
 
-          <!-- Khoi tien mat: Uu tien o nhap so tien, cac so co san thu nho nam o duoi -->
+          <!-- Khoi tien mat: Uu tien o nhap so tien mo rong, cac so co san nam o duoi -->
           <div class="ql-cash-section" id="quickCashSection" hidden>
             <div class="ql-cash-input-row" id="quickCashInputRow">
               <label for="quickCustomCashInput" class="ql-cash-label">Khách đưa:</label>
               <input type="text" id="quickCustomCashInput" class="ql-cash-input" inputmode="numeric" pattern="[0-9]*"
-                autocomplete="off" placeholder="Đủ tiền hoặc nhập số (vd: 50, 70k, 100k...)">
+                autocomplete="off" placeholder="Nhập số tiền (vd: 50, 70k, 100000...)">
               <button type="button" class="ql-cash-clear-btn" id="btnQuickCashClear" aria-label="Khách đưa đủ" title="Khách đưa đủ">&times;</button>
             </div>
 
@@ -377,6 +385,58 @@
             </button>
           </div>
           <div class="ql-qr-box" id="quickQrImg"></div>
+        </div>
+
+        <!-- Sheet cong tien / them mon ngoai menu ngay trong Ban nhanh -->
+        <div class="ql-sheet" id="quickCustomSheet" hidden>
+          <div class="ql-sheet-head">
+            <div class="ql-cart-title">Cộng tiền / Món ngoài menu</div>
+            <button type="button" class="ql-icon-btn" id="btnQuickCustomClose" aria-label="Đóng">
+              <span id="quickCustomCloseIcon"></span>
+            </button>
+          </div>
+          <div class="ql-custom-body">
+            <div class="ql-custom-field">
+              <div class="ql-custom-label-row">
+                <label for="quickCustomPriceInput" class="ql-custom-label">Số tiền cần cộng (VNĐ):</label>
+                <span class="ql-custom-preview" id="quickCustomPricePreview">0đ</span>
+              </div>
+              <input type="text" id="quickCustomPriceInput" class="ql-custom-money-input" inputmode="numeric" pattern="[0-9]*"
+                autocomplete="off" placeholder="Nhập số tiền (vd: 15, 20k, 25000...)">
+              <div class="ql-custom-chips" id="quickCustomPriceChips">
+                <button type="button" class="ql-chip" data-price="5000">5k</button>
+                <button type="button" class="ql-chip" data-price="10000">10k</button>
+                <button type="button" class="ql-chip" data-price="15000">15k</button>
+                <button type="button" class="ql-chip" data-price="20000">20k</button>
+                <button type="button" class="ql-chip" data-price="25000">25k</button>
+                <button type="button" class="ql-chip" data-price="30000">30k</button>
+                <button type="button" class="ql-chip" data-price="50000">50k</button>
+              </div>
+            </div>
+
+            <div class="ql-custom-field">
+              <label for="quickCustomNameInput" class="ql-custom-label">Tên món (không bắt buộc):</label>
+              <input type="text" id="quickCustomNameInput" class="ql-custom-text-input" autocomplete="off"
+                placeholder="Để trống mặc định là Món ngoài menu">
+              <div class="ql-custom-chips" id="quickCustomNameChips">
+                <button type="button" class="ql-name-chip" data-name="Món ngoài menu">Món ngoài menu</button>
+                <button type="button" class="ql-name-chip" data-name="Phụ thu">Phụ thu</button>
+                <button type="button" class="ql-name-chip" data-name="Bánh mì">Bánh mì</button>
+                <button type="button" class="ql-name-chip" data-name="Bánh tráng">Bánh tráng</button>
+                <button type="button" class="ql-name-chip" data-name="Khăn lạnh">Khăn lạnh</button>
+                <button type="button" class="ql-name-chip" data-name="Thêm topping">Thêm topping</button>
+              </div>
+            </div>
+
+            <div class="ql-custom-footer">
+              <div class="qty-control ql-custom-qty">
+                <button type="button" class="qty-btn" id="btnQuickCustomQtyMinus">-</button>
+                <span class="qty-val" id="quickCustomQtyVal">1</span>
+                <button type="button" class="qty-btn" id="btnQuickCustomQtyPlus">+</button>
+              </div>
+              <button type="button" class="ql-complete ql-custom-submit" id="btnQuickCustomConfirm">Cộng vào đơn</button>
+            </div>
+          </div>
         </div>
 
         <!-- Thong bao sau thanh toan (khong dung modal) -->
@@ -423,33 +483,53 @@
 
   <!-- MODAL: THANH TOÁN -->
   <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-sheet">
+    <div class="modal-sheet checkout-modal-sheet">
       <div class="modal-header">
         <div class="modal-title" id="checkoutModalTitle">Thanh toán Bàn 01</div>
         <button class="modal-close-btn" id="btnCloseCheckoutModal"></button>
       </div>
-      <div class="modal-body">
-        <div style="text-align: center; margin-bottom: 16px;">
-          <div style="font-size: 12px; color: var(--text-muted);">Tổng số tiền cần thanh toán</div>
-          <div id="checkoutTotalAmount" style="font-size: 26px; font-weight: 800; color: var(--primary);">0đ</div>
+      <div class="modal-body checkout-modal-body">
+        <div style="text-align: center; margin-bottom: 14px;">
+          <div style="font-size: 13px; color: var(--text-muted);">Tổng số tiền cần thanh toán</div>
+          <div id="checkoutTotalAmount" style="font-size: 30px; font-weight: 800; color: var(--primary);">0đ</div>
+        </div>
+
+        <!-- Cong them tien mon ngoai menu ngay trong form tinh tien -->
+        <div class="checkout-custom-wrap">
+          <button type="button" class="btn-secondary checkout-custom-toggle" id="btnCheckoutAddCustom">+ Cộng thêm tiền món ngoài menu</button>
+          <div class="checkout-custom-box" id="checkoutCustomBox" hidden>
+            <div class="checkout-custom-grid">
+              <input type="text" id="checkoutCustomPrice" class="search-input checkout-custom-price" inputmode="numeric" pattern="[0-9]*" placeholder="Số tiền (vd: 15, 20k, 25000)">
+              <input type="text" id="checkoutCustomName" class="search-input checkout-custom-name" placeholder="Tên món (để trống = Món ngoài menu)">
+            </div>
+            <div class="checkout-custom-chips">
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="5000">+5k</button>
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="10000">+10k</button>
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="15000">+15k</button>
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="20000">+20k</button>
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="30000">+30k</button>
+              <button type="button" class="filter-chip btn-checkout-custom-price" data-val="50000">+50k</button>
+            </div>
+            <button type="button" class="btn-primary checkout-custom-submit" id="btnConfirmCheckoutCustom">Cộng tiền vào hóa đơn</button>
+          </div>
         </div>
 
         <!-- Phương thức thanh toán -->
-        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button class="filter-chip active" id="btnPayMethodCash" style="flex: 1; text-align: center; padding: 10px;">Tiền mặt</button>
-          <button class="filter-chip" id="btnPayMethodQR" style="flex: 1; text-align: center; padding: 10px;">Chuyển khoản QR</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <button class="filter-chip active" id="btnPayMethodCash" style="flex: 1; text-align: center; padding: 12px; font-size: 14px;">Tiền mặt</button>
+          <button class="filter-chip" id="btnPayMethodQR" style="flex: 1; text-align: center; padding: 12px; font-size: 14px;">Chuyển khoản QR</button>
         </div>
 
         <!-- Thanh toán tiền mặt -->
         <div id="cashPaymentBox">
-          <label style="font-size: 12px; font-weight: 600; margin-bottom: 6px; display: block;">Tiền khách đưa:</label>
-          <input type="number" id="customerCashInput" class="search-input" placeholder="Nhập số tiền..." style="padding-left: 14px; margin-bottom: 8px;">
-          <div style="display: flex; gap: 6px; margin-bottom: 12px;" id="quickCashButtons">
+          <label for="customerCashInput" style="font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block;">Tiền khách đưa:</label>
+          <input type="text" id="customerCashInput" class="search-input checkout-cash-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Nhập số tiền (vd: 50, 100k, 200000...)">
+          <div class="checkout-quick-cash-row" id="quickCashButtons">
             <!-- Gợi ý tiền mặt: Đúng số tiền, 50k, 100k, 200k, 500k -->
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 700; background: var(--bg-surface); padding: 14px; border-radius: var(--radius-md);">
             <span>Tiền thừa trả khách:</span>
-            <span id="changeAmountText" style="color: var(--primary);">0đ</span>
+            <span id="changeAmountText" style="color: var(--primary); font-size: 19px; font-weight: 800;">0đ</span>
           </div>
         </div>
 
@@ -463,7 +543,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-primary" id="btnConfirmPayment">Xác nhận thanh toán & In bill</button>
+        <button class="btn-primary" id="btnConfirmPayment" style="height: 50px; font-size: 15px;">Xác nhận thanh toán & In bill</button>
       </div>
     </div>
   </div>

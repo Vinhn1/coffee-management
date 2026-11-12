@@ -1,10 +1,10 @@
 (function (root, factory) {
   const deps = (typeof require === "function" && typeof module === "object" && module.exports)
-    ? Object.assign({}, require("./data.js"), require("./icons.js"), require("./quick-ui.js"), require("./store.js"))
+    ? Object.assign({}, require("./data.js"), require("./icons.js"), require("./quick.js"), require("./quick-ui.js"), require("./store.js"))
     : (root.BuiCoffee || {});
   factory(deps);
 })(typeof globalThis !== "undefined" ? globalThis : this, function (deps) {
-const { CATEGORIES, DRINK_CATEGORY_DEFAULT_IMAGES, PAYMENT_QR, SHOP_INFO, ICONS, QuickRegister, store } = deps;
+const { CATEGORIES, DRINK_CATEGORY_DEFAULT_IMAGES, PAYMENT_QR, SHOP_INFO, ICONS, parseMoneyInput, QuickRegister, store } = deps;
 
 // Helper bỏ dấu tiếng Việt để tìm kiếm nhanh
 function removeVietnameseTones(str) {
@@ -261,9 +261,55 @@ class CoffeeApp {
       this.setPaymentMethod("qr");
     });
 
-    document.getElementById("customerCashInput").addEventListener("input", () => {
-      this.calculateCashChange();
+    const cashInputEl = document.getElementById("customerCashInput");
+    if (cashInputEl) {
+      cashInputEl.addEventListener("input", () => {
+        this.calculateCashChange();
+      });
+      cashInputEl.addEventListener("focus", () => {
+        if (cashInputEl.value) cashInputEl.select();
+      });
+    }
+
+    const btnToggleCheckoutCustom = document.getElementById("btnCheckoutAddCustom");
+    const checkoutCustomBox = document.getElementById("checkoutCustomBox");
+    if (btnToggleCheckoutCustom && checkoutCustomBox) {
+      btnToggleCheckoutCustom.addEventListener("click", () => {
+        const nextHidden = !checkoutCustomBox.hidden;
+        checkoutCustomBox.hidden = nextHidden;
+        if (!nextHidden) {
+          const priceInput = document.getElementById("checkoutCustomPrice");
+          if (priceInput) priceInput.focus();
+        }
+      });
+    }
+
+    document.querySelectorAll(".btn-checkout-custom-price").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = Number(btn.getAttribute("data-val"));
+        const priceInput = document.getElementById("checkoutCustomPrice");
+        if (priceInput && val > 0) {
+          priceInput.value = val.toLocaleString("vi-VN");
+        }
+      });
     });
+
+    const btnConfirmCheckoutCustom = document.getElementById("btnConfirmCheckoutCustom");
+    if (btnConfirmCheckoutCustom) {
+      btnConfirmCheckoutCustom.addEventListener("click", () => {
+        this.addCustomItemDuringCheckout();
+      });
+    }
+
+    const checkoutCustomPriceEl = document.getElementById("checkoutCustomPrice");
+    if (checkoutCustomPriceEl) {
+      checkoutCustomPriceEl.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          this.addCustomItemDuringCheckout();
+        }
+      });
+    }
 
     document.getElementById("btnConfirmPayment").addEventListener("click", () => {
       this.processPayment();
@@ -959,13 +1005,25 @@ class CoffeeApp {
   }
 
   // MODAL THANH TOÁN
-  openCheckoutModal() {
-    const activeTable = store.getActiveTable();
-    if (!activeTable || activeTable.orderItems.length === 0) return;
+  _parseCheckoutCashInput(rawValue) {
+    const el = document.getElementById("customerCashInput");
+    const raw = rawValue !== undefined ? rawValue : (el ? el.value : "");
+    if (typeof parseMoneyInput === "function") {
+      return parseMoneyInput(raw) || 0;
+    }
+    const digits = String(raw || "").replace(/\D/g, "");
+    return digits ? Number(digits) : 0;
+  }
 
-    document.getElementById("checkoutModalTitle").textContent = `Thanh toán ${activeTable.name}`;
-    document.getElementById("checkoutTotalAmount").textContent = formatMoney(activeTable.totalAmount);
-    document.getElementById("customerCashInput").value = activeTable.totalAmount;
+  _syncCheckoutSummary(activeTable) {
+    if (!activeTable) return;
+    const total = activeTable.totalAmount;
+
+    document.getElementById("checkoutTotalAmount").textContent = formatMoney(total);
+    const cashInputEl = document.getElementById("customerCashInput");
+    if (cashInputEl) {
+      cashInputEl.value = total.toLocaleString("vi-VN");
+    }
     document.getElementById("changeAmountText").textContent = "0đ";
 
     // Ghi chú bàn trong thanh toán
@@ -988,17 +1046,16 @@ class CoffeeApp {
 
     // Nút gợi ý tiền mặt
     const quickCashContainer = document.getElementById("quickCashButtons");
-    const total = activeTable.totalAmount;
     const suggestions = [total, 50000, 100000, 200000, 500000].filter((val, i, arr) => val >= total && arr.indexOf(val) === i).slice(0, 4);
 
     quickCashContainer.innerHTML = suggestions.map(val => `
-      <button class="filter-chip btn-quick-cash" data-val="${val}">${formatMoney(val)}</button>
+      <button type="button" class="filter-chip btn-quick-cash" data-val="${val}">${formatMoney(val)}</button>
     `).join("");
 
     quickCashContainer.querySelectorAll(".btn-quick-cash").forEach(b => {
       b.addEventListener("click", () => {
         const val = Number(b.getAttribute("data-val"));
-        document.getElementById("customerCashInput").value = val;
+        document.getElementById("customerCashInput").value = val.toLocaleString("vi-VN");
         this.calculateCashChange();
       });
     });
@@ -1010,7 +1067,52 @@ class CoffeeApp {
       <div class="qr-amount-banner">Số tiền cần chuyển: <b>${formatMoney(total)}</b></div>
       <img src="${PAYMENT_QR.image}" alt="Mã QR Bụi Coffee" class="qr-payment-photo" onerror="this.onerror=null;this.parentElement.innerHTML='<p style=\\'font-size:12px;padding:20px;\\'>Quét mã QR thanh toán ${formatMoney(total)} - ${PAYMENT_QR.accountName}</p>'">
     `;
+    this.calculateCashChange();
+  }
 
+  addCustomItemDuringCheckout() {
+    const activeTable = store.getActiveTable();
+    if (!activeTable) return;
+    const priceInput = document.getElementById("checkoutCustomPrice");
+    const nameInput = document.getElementById("checkoutCustomName");
+    const box = document.getElementById("checkoutCustomBox");
+    const parsedPrice = typeof parseMoneyInput === "function"
+      ? parseMoneyInput(priceInput ? priceInput.value : "")
+      : Number(String(priceInput ? priceInput.value : "").replace(/\D/g, "")) || 0;
+
+    if (!parsedPrice || parsedPrice <= 0) {
+      if (priceInput) priceInput.focus();
+      return;
+    }
+
+    const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Món ngoài menu";
+    store.addCustomItemToTable(activeTable.id, {
+      name,
+      price: parsedPrice,
+      quantity: 1
+    });
+
+    if (priceInput) priceInput.value = "";
+    if (nameInput) nameInput.value = "";
+    if (box) box.hidden = true;
+
+    this.renderAll();
+    this._syncCheckoutSummary(store.getActiveTable());
+  }
+
+  openCheckoutModal() {
+    const activeTable = store.getActiveTable();
+    if (!activeTable || activeTable.orderItems.length === 0) return;
+
+    document.getElementById("checkoutModalTitle").textContent = `Thanh toán ${activeTable.name}`;
+    const checkoutCustomBox = document.getElementById("checkoutCustomBox");
+    const checkoutCustomPrice = document.getElementById("checkoutCustomPrice");
+    const checkoutCustomName = document.getElementById("checkoutCustomName");
+    if (checkoutCustomBox) checkoutCustomBox.hidden = true;
+    if (checkoutCustomPrice) checkoutCustomPrice.value = "";
+    if (checkoutCustomName) checkoutCustomName.value = "";
+
+    this._syncCheckoutSummary(activeTable);
     this.setPaymentMethod("cash");
     this.openModal("checkoutModal");
   }
@@ -1040,7 +1142,7 @@ class CoffeeApp {
     const activeTable = store.getActiveTable();
     if (!activeTable) return;
     const total = activeTable.totalAmount;
-    const cashInput = Number(document.getElementById("customerCashInput").value) || 0;
+    const cashInput = this._parseCheckoutCashInput();
     const change = cashInput >= total ? cashInput - total : 0;
     document.getElementById("changeAmountText").textContent = formatMoney(change);
   }
@@ -1049,7 +1151,7 @@ class CoffeeApp {
     const activeTable = store.getActiveTable();
     if (!activeTable || activeTable.orderItems.length === 0) return;
 
-    const cashInput = Number(document.getElementById("customerCashInput").value) || activeTable.totalAmount;
+    const cashInput = this._parseCheckoutCashInput() || activeTable.totalAmount;
     const invoice = store.completePayment(activeTable.id, this.paymentMethod, cashInput);
 
     this.closeModal("checkoutModal");

@@ -497,6 +497,39 @@ class CoffeeStore {
     return this.state.quickOrder.items;
   }
 
+  // Them mon ngoai menu / cong tien nhanh vao gio hang Ban nhanh
+  quickAddCustom({ name = "", price, quantity = 1, note = "" } = {}) {
+    const cleanPrice = Math.round(Number(price));
+    if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) return null;
+
+    const trimmedName = String(name || "").trim() || "Món ngoài menu";
+    const cleanQty = this._normalizeQty(quantity);
+    const cleanNote = String(note || "").trim();
+    const items = this.state.quickOrder.items;
+
+    const existing = items.find(
+      i => i.isCustom && i.name === trimmedName && i.price === cleanPrice && (i.note || "") === cleanNote
+    );
+    if (existing) {
+      existing.quantity = Math.min(existing.quantity + cleanQty, 999);
+      this.saveStateDebounced();
+      return existing;
+    }
+
+    const created = {
+      itemId: "custom_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      name: trimmedName,
+      price: cleanPrice,
+      category: "other",
+      quantity: cleanQty,
+      note: cleanNote,
+      isCustom: true
+    };
+    items.push(created);
+    this.saveStateDebounced();
+    return created;
+  }
+
   quickSetQty(itemId, qty) {
     const items = this.state.quickOrder.items;
     const idx = items.findIndex(i => i.itemId === itemId);
@@ -595,12 +628,21 @@ class CoffeeStore {
 
     const count = lines.reduce((s, l) => s + l.quantity, 0);
     lines.forEach(l => {
-      this.addItemToTable(
-        table.id,
-        { id: l.itemId, name: l.name, price: l.price, category: l.category },
-        l.quantity,
-        l.note || ""
-      );
+      if (l.isCustom) {
+        this.addCustomItemToTable(table.id, {
+          name: l.name,
+          price: l.price,
+          quantity: l.quantity,
+          note: l.note || ""
+        });
+      } else {
+        this.addItemToTable(
+          table.id,
+          { id: l.itemId, name: l.name, price: l.price, category: l.category },
+          l.quantity,
+          l.note || ""
+        );
+      }
     });
 
     const quickNote = this.getQuickNote();
