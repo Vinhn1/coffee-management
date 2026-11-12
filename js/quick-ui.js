@@ -31,9 +31,11 @@ function formatMoney(amount) {
 }
 
 function getDrinkThumb(item) {
-  if (!item) return "";
+  if (!item) return "assets/drinks/placeholder.svg";
+  if (item.image) return item.image;
+  if (item.isCustomCreated) return "assets/drinks/placeholder.svg";
   const defaults = DRINK_CATEGORY_DEFAULT_IMAGES || {};
-  return item.image || defaults[item.category] || defaults.other || "";
+  return defaults[item.category] || "assets/drinks/placeholder.svg";
 }
 
 function escapeHtml(str) {
@@ -93,17 +95,22 @@ class QuickRegister {
       cartList: g("quickCartList"),
       orderNoteInput: g("quickOrderNoteInput"),
       dockEmpty: g("quickDockEmpty"),
+      summaryRow: g("quickSummaryRow"),
       summary: g("quickSummary"),
+      btnDelLast: g("btnQuickDelLast"),
       sumCount: g("quickSumCount"),
       sumList: g("quickSumList"),
       total: g("quickTotal"),
       tableInfo: g("quickTableInfo"),
       methodGroup: g("quickMethod"),
+      cashSection: g("quickCashSection"),
       tenderGroup: g("quickTender"),
+      customCashInput: g("quickCustomCashInput"),
+      cashClearBtn: g("btnQuickCashClear"),
+      actionRow: g("quickActionRow"),
       changeRow: g("quickChangeRow"),
       changeText: g("quickChange"),
       btnCustomCash: g("btnQuickCustomCash"),
-      customCashInput: g("quickCustomCashInput"),
       btnComplete: g("btnQuickComplete"),
       tablePanel: g("quickTablePanel"),
       btnSendToTable: g("btnQuickSendToTable"),
@@ -421,36 +428,56 @@ class QuickRegister {
       });
     }
 
+    if (d.btnDelLast) {
+      d.btnDelLast.addEventListener("click", e => {
+        e.stopPropagation();
+        const items = store.getQuickOrder().items;
+        if (items.length === 0) return;
+        const last = items[items.length - 1];
+        store.quickRemove(last.itemId);
+        this._onCartMutated();
+      });
+    }
+
     if (d.tenderGroup) {
       d.tenderGroup.addEventListener("click", e => {
         const chip = e.target.closest(".ql-chip");
         if (!chip || chip.getAttribute("aria-disabled") === "true") return;
         const raw = chip.getAttribute("data-cash");
-        this.tender.cash = raw === "exact" ? null : Number(raw);
-        if (d.customCashInput) {
-          d.customCashInput.hidden = true;
-          d.customCashInput.value = "";
+        if (raw === "exact") {
+          this.tender.cash = null;
+          if (d.customCashInput) d.customCashInput.value = "";
+        } else {
+          const val = Number(raw);
+          this.tender.cash = val;
+          if (d.customCashInput) {
+            d.customCashInput.value = formatShortPrice(val).toUpperCase();
+          }
         }
-        this.renderDock();
+        this._renderTenderAndChangeOnly();
       });
     }
 
-    if (d.btnCustomCash && d.customCashInput) {
-      d.btnCustomCash.addEventListener("click", () => {
-        const willShow = d.customCashInput.hidden;
-        d.customCashInput.hidden = !willShow;
-        if (willShow) {
+    if (d.cashClearBtn) {
+      d.cashClearBtn.addEventListener("click", () => {
+        this.tender.cash = null;
+        if (d.customCashInput) {
           d.customCashInput.value = "";
           d.customCashInput.focus();
-        } else {
-          this.tender.cash = null;
-          this.renderDock();
         }
+        this._renderTenderAndChangeOnly();
       });
+    }
 
+    if (d.customCashInput) {
       d.customCashInput.addEventListener("input", () => {
-        const parsed = parseMoneyInput(d.customCashInput.value);
-        this.tender.cash = parsed;
+        const val = d.customCashInput.value.trim();
+        if (!val) {
+          this.tender.cash = null;
+        } else {
+          const parsed = parseMoneyInput(val);
+          this.tender.cash = parsed;
+        }
         this._renderTenderAndChangeOnly();
       });
 
@@ -843,7 +870,8 @@ class QuickRegister {
             <span class="ql-tile-name">${escapeHtml(item.name)}</span>
             <span class="ql-tile-price">${formatShortPrice(item.price)}</span>
           </span>
-          <span class="ql-tile-badge" data-badge-id="${item.id}" role="button" aria-label="Giảm 1 ${escapeHtml(item.name)}">
+          <span class="ql-tile-badge ${qty > 0 ? "is-visible" : ""}" data-badge-id="${item.id}" role="button" aria-label="Xóa hoặc giảm 1 ${escapeHtml(item.name)}" title="Bấm để xóa / giảm món">
+            <span class="ql-tile-badge-icon">&minus;</span>
             <span class="ql-tile-badge-num">${qty}</span>
           </span>
         </button>
@@ -922,13 +950,15 @@ class QuickRegister {
 
     const empty = count === 0;
     if (d.dockEmpty) d.dockEmpty.hidden = !(empty && !tableOccupied);
-    if (d.summary) d.summary.hidden = empty;
+    if (d.summaryRow) d.summaryRow.hidden = empty;
+    else if (d.summary) d.summary.hidden = empty;
 
     if (isTable) {
       if (d.methodGroup) d.methodGroup.hidden = true;
+      if (d.cashSection) d.cashSection.hidden = true;
       if (d.tenderGroup) d.tenderGroup.hidden = true;
+      if (d.actionRow) d.actionRow.hidden = true;
       if (d.changeRow) d.changeRow.hidden = true;
-      if (d.customCashInput) d.customCashInput.hidden = true;
       if (d.btnShowQr) d.btnShowQr.hidden = true;
       if (d.btnComplete) d.btnComplete.hidden = true;
 
@@ -949,9 +979,10 @@ class QuickRegister {
 
     if (empty) {
       if (d.methodGroup) d.methodGroup.hidden = true;
+      if (d.cashSection) d.cashSection.hidden = true;
       if (d.tenderGroup) d.tenderGroup.hidden = true;
+      if (d.actionRow) d.actionRow.hidden = true;
       if (d.changeRow) d.changeRow.hidden = true;
-      if (d.customCashInput) d.customCashInput.hidden = true;
       if (d.btnShowQr) d.btnShowQr.hidden = true;
       if (d.btnComplete) d.btnComplete.hidden = true;
       return;
@@ -965,8 +996,10 @@ class QuickRegister {
       });
     }
 
+    if (d.cashSection) d.cashSection.hidden = !isCash;
     if (d.tenderGroup) d.tenderGroup.hidden = !isCash;
-    if (d.changeRow) d.changeRow.hidden = !isCash;
+    if (d.actionRow) d.actionRow.hidden = false;
+    if (d.changeRow) d.changeRow.hidden = false;
     if (d.btnShowQr) d.btnShowQr.hidden = isCash;
     if (d.btnComplete) d.btnComplete.hidden = false;
 
@@ -1001,6 +1034,10 @@ class QuickRegister {
       });
     }
 
+    if (d.customCashInput && document.activeElement !== d.customCashInput) {
+      d.customCashInput.value = this.tender.cash === null ? "" : (this.tender.cash).toLocaleString("vi-VN");
+    }
+
     const calc = calcChange(total, this.tender.cash);
     if (d.changeText) {
       d.changeText.classList.remove("is-exact", "is-ok", "is-short");
@@ -1009,10 +1046,10 @@ class QuickRegister {
         d.changeText.textContent = "Khách đưa đủ";
       } else if (calc.enough) {
         d.changeText.classList.add("is-ok");
-        d.changeText.textContent = `Tiền thừa: ${formatMoney(calc.change)}`;
+        d.changeText.textContent = `Thối: ${formatMoney(calc.change)}`;
       } else {
         d.changeText.classList.add("is-short");
-        d.changeText.textContent = `Còn thiếu: ${formatMoney(calc.shortfall)}`;
+        d.changeText.textContent = `Thiếu: ${formatMoney(calc.shortfall)}`;
       }
     }
 
@@ -1022,10 +1059,10 @@ class QuickRegister {
         d.btnComplete.textContent = "Chưa đủ tiền";
       } else if (this.tender.cash === null || calc.change === 0) {
         d.btnComplete.disabled = false;
-        d.btnComplete.textContent = `Hoàn tất - thu đủ ${formatMoney(total)}`;
+        d.btnComplete.textContent = `Hoàn tất - ${formatMoney(total)}`;
       } else {
         d.btnComplete.disabled = false;
-        d.btnComplete.textContent = `Hoàn tất - thối ${formatMoney(calc.change)}`;
+        d.btnComplete.textContent = `Hoàn tất (thối ${formatShortPrice(calc.change)})`;
       }
     }
   }

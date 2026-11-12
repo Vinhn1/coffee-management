@@ -44,7 +44,14 @@ class CoffeeStore {
         if (!item || !item.id) return item;
         existingIds.add(item.id);
         const seed = initialById.get(item.id);
-        const img = item.image || (seed && seed.image) || fallbackImgs[item.category] || fallbackImgs.other || "";
+        let img = item.image;
+        if (item.isCustomCreated) {
+          if (!img || img === fallbackImgs.coffee || img === "assets/drinks/other.jpg") {
+            img = "assets/drinks/placeholder.svg";
+          }
+        } else if (!img) {
+          img = (seed && seed.image) || fallbackImgs[item.category] || "assets/drinks/placeholder.svg";
+        }
         return item.image === img ? item : Object.assign({}, item, { image: img });
       });
       // Bo sung cac mon moi trong INITIAL_MENU (chua co trong localStorage cu) theo nhom danh muc
@@ -239,13 +246,13 @@ class CoffeeStore {
     if (!name || Number(price) <= 0) return null;
 
     const cat = category || "other";
-    const fallbackImgs = DRINK_CATEGORY_DEFAULT_IMAGES || {};
+    const cleanImg = typeof image === "string" ? image.trim() : "";
     const newItem = {
       id: "m_" + Date.now(),
       name: name.trim(),
       price: Number(price),
       category: cat,
-      image: image || fallbackImgs[cat] || fallbackImgs.other || "",
+      image: cleanImg || "assets/drinks/placeholder.svg",
       isCustomCreated: true
     };
 

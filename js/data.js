@@ -41,7 +41,7 @@ const DRINK_CATEGORY_DEFAULT_IMAGES = {
   juice: "assets/drinks/j8.jpg",
   smoothie: "assets/drinks/s1.jpg",
   ice_blend: "assets/drinks/ib2.jpg",
-  other: "assets/drinks/other.jpg"
+  other: "assets/drinks/placeholder.svg"
 };
 
 const INITIAL_MENU = [

@@ -320,13 +320,16 @@
         <div class="ql-dock">
           <div class="ql-dock-empty" id="quickDockEmpty">Chạm món để bắt đầu</div>
 
-          <button type="button" class="ql-summary" id="quickSummary" hidden>
-            <span class="ql-sum-text">
-              <span class="ql-sum-count" id="quickSumCount">0 món</span>
-              <span class="ql-sum-list" id="quickSumList"></span>
-            </span>
-            <span class="ql-total" id="quickTotal" aria-live="polite">0đ</span>
-          </button>
+          <div class="ql-summary-row" id="quickSummaryRow" hidden>
+            <button type="button" class="ql-summary" id="quickSummary">
+              <span class="ql-sum-text">
+                <span class="ql-sum-count" id="quickSumCount">0 món</span>
+                <span class="ql-sum-list" id="quickSumList"></span>
+              </span>
+              <span class="ql-total" id="quickTotal" aria-live="polite">0đ</span>
+            </button>
+            <button type="button" class="ql-sum-del-btn" id="btnQuickDelLast" title="Hủy món vừa thêm" aria-label="Xóa món">Xóa món</button>
+          </div>
 
           <div class="ql-table-info" id="quickTableInfo" hidden></div>
 
@@ -335,23 +338,29 @@
             <button type="button" class="ql-method-btn" data-method="qr">Chuyển khoản</button>
           </div>
 
-          <div class="ql-tender" id="quickTender" hidden>
-            <button type="button" class="ql-chip ql-chip-exact" data-cash="exact">Đủ tiền</button>
-            <button type="button" class="ql-chip" data-cash="20000">20k</button>
-            <button type="button" class="ql-chip" data-cash="50000">50k</button>
-            <button type="button" class="ql-chip" data-cash="100000">100k</button>
-            <button type="button" class="ql-chip" data-cash="200000">200k</button>
-            <button type="button" class="ql-chip" data-cash="500000">500k</button>
+          <!-- Khối tiền mặt: Ưu tiên ô nhập số tiền, các số có sẵn thu nhỏ nằm ở dưới -->
+          <div class="ql-cash-section" id="quickCashSection" hidden>
+            <div class="ql-cash-input-row">
+              <span class="ql-cash-label">Khách đưa:</span>
+              <input type="text" id="quickCustomCashInput" class="ql-cash-input" inputmode="numeric"
+                autocomplete="off" placeholder="Đủ tiền hoặc nhập số (vd: 50, 70k, 100k...)">
+              <button type="button" class="ql-cash-clear-btn" id="btnQuickCashClear" aria-label="Khách đưa đủ" title="Khách đưa đủ">&times;</button>
+            </div>
+
+            <div class="ql-tender-chips" id="quickTender">
+              <button type="button" class="ql-chip ql-chip-exact" data-cash="exact">Đủ tiền</button>
+              <button type="button" class="ql-chip" data-cash="20000">20k</button>
+              <button type="button" class="ql-chip" data-cash="50000">50k</button>
+              <button type="button" class="ql-chip" data-cash="100000">100k</button>
+              <button type="button" class="ql-chip" data-cash="200000">200k</button>
+              <button type="button" class="ql-chip" data-cash="500000">500k</button>
+            </div>
           </div>
 
-          <div class="ql-change-row" id="quickChangeRow" hidden>
+          <div class="ql-action-row" id="quickActionRow" hidden>
             <div class="ql-change" id="quickChange" aria-live="polite">Khách đưa đủ</div>
-            <button type="button" class="ql-link-btn" id="btnQuickCustomCash">Nhập số khác</button>
+            <button type="button" class="ql-complete" id="btnQuickComplete">Hoàn tất</button>
           </div>
-          <input type="text" id="quickCustomCashInput" class="search-input ql-custom-cash" inputmode="numeric"
-            autocomplete="off" placeholder="Số tiền khách đưa (vd: 70 = 70.000đ)" hidden>
-
-          <button type="button" class="ql-complete" id="btnQuickComplete" hidden>Hoàn tất</button>
 
           <div class="ql-table-actions" id="quickTablePanel" hidden>
             <button type="button" class="ql-complete" id="btnQuickSendToTable">Gửi vào bàn</button>

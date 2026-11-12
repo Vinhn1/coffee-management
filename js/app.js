@@ -771,7 +771,7 @@ class CoffeeApp {
     const defaultImgs = DRINK_CATEGORY_DEFAULT_IMAGES || {};
 
     container.innerHTML = menu.map(item => {
-      const thumb = item.image || defaultImgs[item.category] || defaultImgs.other || "";
+      const thumb = item.image || (item.isCustomCreated ? "assets/drinks/placeholder.svg" : (defaultImgs[item.category] || "assets/drinks/placeholder.svg"));
       const safeName = escapeHtml(item.name);
       return `
         <div class="menu-item-card" data-id="${item.id}">

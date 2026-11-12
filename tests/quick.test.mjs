@@ -398,6 +398,8 @@ test("menu completeness, other category, drink images, and store migration", () 
   const added = mod.store.addMenuItem({ name: "Khoai tây chiên", price: 30000, category: "other" });
   assert.equal(added.category, "other");
   assert.equal(added.image, DRINK_CATEGORY_DEFAULT_IMAGES.other);
+  const addedNoImg = mod.store.addMenuItem({ name: "Món mới test", price: 20000, category: "coffee" });
+  assert.equal(addedNoImg.image, "assets/drinks/placeholder.svg", "new custom item must not auto-assign coffee image");
 });
 
 test("timekeeping: continuous shifts Trưa + Tối deducts overlap and >= 7 ca awards 100k bonus", async () => {
