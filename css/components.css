@@ -1250,38 +1250,39 @@
 
 /* Mo rong form tinh tien ban & o nhap tien trong checkoutModal */
 .checkout-modal-sheet {
+  width: 96vw;
   max-width: 620px;
-  max-height: 92vh;
+  max-height: 92dvh;
 }
 
 .checkout-modal-body {
-  padding: 18px 20px;
+  padding: 18px 18px;
 }
 
 .checkout-cash-input {
   width: 100%;
-  height: 54px;
-  padding: 0 14px !important;
-  font-size: 20px !important;
+  height: 60px !important;
+  padding: 0 16px !important;
+  font-size: 22px !important;
   font-weight: 800 !important;
-  border: 2px solid var(--primary) !important;
-  border-radius: var(--radius-md) !important;
-  margin-bottom: 10px;
+  border: 2.5px solid var(--primary) !important;
+  border-radius: 14px !important;
+  margin-bottom: 12px;
   color: var(--text-main);
-  background: #ffffff;
+  background: #fffdf9;
 }
 
 .checkout-quick-cash-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .checkout-quick-cash-row .btn-quick-cash {
-  height: 40px;
-  font-size: 13.5px;
-  font-weight: 700;
+  height: 44px;
+  font-size: 14.5px;
+  font-weight: 800;
   text-align: center;
 }
 
@@ -1291,21 +1292,24 @@
 
 .checkout-custom-toggle {
   width: 100%;
-  height: 40px;
-  font-size: 13px;
-  font-weight: 700;
-  border-style: dashed;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 800;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 2px solid #ea580c;
+  border-radius: 12px;
 }
 
 .checkout-custom-box {
   margin-top: 10px;
-  padding: 12px;
+  padding: 14px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-color);
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .checkout-custom-box[hidden] {
@@ -1319,33 +1323,39 @@
 }
 
 .checkout-custom-price {
-  height: 46px !important;
-  padding: 0 12px !important;
-  font-size: 17px !important;
-  font-weight: 700 !important;
-  border: 1.5px solid var(--primary) !important;
+  height: 54px !important;
+  padding: 0 14px !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  border: 2px solid var(--primary) !important;
+  border-radius: 12px !important;
+  background: #ffffff;
 }
 
 .checkout-custom-name {
-  height: 42px !important;
-  padding: 0 12px !important;
-  font-size: 14px !important;
+  height: 46px !important;
+  padding: 0 14px !important;
+  font-size: 15px !important;
+  border-radius: 12px !important;
+  background: #ffffff;
 }
 
 .checkout-custom-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .checkout-custom-chips .btn-checkout-custom-price {
-  height: 32px;
+  height: 38px;
   padding: 0 10px;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
 }
 
 .checkout-custom-submit {
-  height: 42px;
-  font-size: 13.5px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 800;
 }

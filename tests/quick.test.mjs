@@ -566,7 +566,14 @@ test("off-menu item & expanded payment form: markup and checkout cash parsing", 
   }
 
   assert.ok(html.includes("checkout-modal-sheet"), "checkout modal must use expanded sheet class");
+  assert.ok(html.includes("css/quick.css?v=20261113v2"), "index.html must cache-bust quick.css for mobile browsers");
+  assert.ok(html.includes("js/quick-ui.js?v=20261113v2"), "index.html must cache-bust quick-ui.js for mobile browsers");
   assert.ok(appJs.includes("addCustomItemDuringCheckout"), "app.js must handle checkout custom items");
   assert.ok(appJs.includes("_parseCheckoutCashInput"), "app.js must parse checkout cash with parseMoneyInput");
   assert.ok(quickUi.includes("_openCustomSheet"), "quick-ui.js must open quick custom sheet");
+  assert.ok(quickUi.includes("[data-open-custom]"), "quick-ui.js must bind delegated custom-sheet triggers");
+
+  const quickCss = fs.readFileSync(new URL("../css/quick.css", import.meta.url), "utf8");
+  assert.ok(quickCss.includes("min-height: 62px"), "quick cash input row must have expanded 62px height");
+  assert.ok(quickCss.includes("max-height: 64dvh"), "quick dock must have expanded mobile max-height");
 });

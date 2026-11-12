@@ -594,18 +594,35 @@ class QuickRegister {
     [d.btnAddCustom, d.btnEmptyCustom, d.btnDockCustom].forEach(btn => {
       if (btn) {
         btn.addEventListener("click", e => {
+          e.preventDefault();
           e.stopPropagation();
           this._openCustomSheet();
         });
       }
     });
 
+    if (d.screen) {
+      d.screen.addEventListener("click", e => {
+        const trigger = e.target.closest("[data-open-custom], #btnQuickAddCustom, #btnQuickEmptyCustom, #btnQuickDockCustom");
+        if (trigger) {
+          e.preventDefault();
+          e.stopPropagation();
+          this._openCustomSheet();
+        }
+      });
+    }
+
     if (d.btnCustomClose) {
       d.btnCustomClose.addEventListener("click", () => this._closeSheets());
     }
 
     if (d.customPriceInput) {
-      d.customPriceInput.addEventListener("input", () => this._updateCustomSheetPreview());
+      d.customPriceInput.addEventListener("input", () => {
+        if (d.customPriceChips) {
+          d.customPriceChips.querySelectorAll(".ql-chip.selected").forEach(el => el.classList.remove("selected"));
+        }
+        this._updateCustomSheetPreview();
+      });
       d.customPriceInput.addEventListener("keydown", e => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -627,6 +644,7 @@ class QuickRegister {
       d.customPriceChips.addEventListener("click", e => {
         const chip = e.target.closest("[data-price]");
         if (!chip || !d.customPriceInput) return;
+        d.customPriceChips.querySelectorAll(".ql-chip").forEach(el => el.classList.toggle("selected", el === chip));
         const val = Number(chip.getAttribute("data-price"));
         d.customPriceInput.value = val.toLocaleString("vi-VN");
         this._updateCustomSheetPreview();
@@ -646,6 +664,7 @@ class QuickRegister {
         if (this.customQty > 1) {
           this.customQty -= 1;
           if (d.customQtyVal) d.customQtyVal.textContent = String(this.customQty);
+          this._updateCustomSheetPreview();
         }
       });
     }
@@ -654,6 +673,7 @@ class QuickRegister {
       d.btnCustomQtyPlus.addEventListener("click", () => {
         this.customQty += 1;
         if (d.customQtyVal) d.customQtyVal.textContent = String(this.customQty);
+        this._updateCustomSheetPreview();
       });
     }
 
@@ -1328,19 +1348,27 @@ class QuickRegister {
     if (d.customQtyVal) d.customQtyVal.textContent = "1";
     if (d.customPriceInput) d.customPriceInput.value = "";
     if (d.customNameInput) d.customNameInput.value = prefilledName || "";
+    if (d.customPriceChips) {
+      d.customPriceChips.querySelectorAll(".ql-chip.selected").forEach(el => el.classList.remove("selected"));
+    }
     this._updateCustomSheetPreview();
     if (d.cartBackdrop) d.cartBackdrop.hidden = false;
     d.customSheet.hidden = false;
-    setTimeout(() => {
-      if (d.customPriceInput) d.customPriceInput.focus();
-    }, 60);
+    d.customSheet.classList.add("open");
+    if (d.customPriceInput) {
+      try { d.customPriceInput.focus(); } catch (_) {}
+    }
   }
 
   _updateCustomSheetPreview() {
     const d = this.dom;
     if (!d.customPriceInput || !d.customPricePreview) return;
     const parsed = parseMoneyInput(d.customPriceInput.value.trim());
-    d.customPricePreview.textContent = parsed ? `= ${formatMoney(parsed)}` : "0đ";
+    const total = parsed ? parsed * (this.customQty || 1) : 0;
+    d.customPricePreview.textContent = total > 0 ? `= ${formatMoney(total)}` : "0đ";
+    if (d.btnCustomConfirm) {
+      d.btnCustomConfirm.textContent = total > 0 ? `Cộng +${formatMoney(total)} vào đơn` : "Cộng vào đơn";
+    }
   }
 
   _submitCustomSheet() {
@@ -1373,9 +1401,18 @@ class QuickRegister {
   _closeSheets() {
     if (this.dom.cartBackdrop) this.dom.cartBackdrop.hidden = true;
     if (this.dom.cartPanel) this.dom.cartPanel.classList.remove("open");
-    if (this.dom.qrSheet) this.dom.qrSheet.hidden = true;
-    if (this.dom.fullMenuSheet) this.dom.fullMenuSheet.hidden = true;
-    if (this.dom.customSheet) this.dom.customSheet.hidden = true;
+    if (this.dom.qrSheet) {
+      this.dom.qrSheet.hidden = true;
+      this.dom.qrSheet.classList.remove("open");
+    }
+    if (this.dom.fullMenuSheet) {
+      this.dom.fullMenuSheet.hidden = true;
+      this.dom.fullMenuSheet.classList.remove("open");
+    }
+    if (this.dom.customSheet) {
+      this.dom.customSheet.hidden = true;
+      this.dom.customSheet.classList.remove("open");
+    }
   }
 }
 

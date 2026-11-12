@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Bụi Coffee - Quản lý Bán hàng</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/quick.css">
+  <link rel="stylesheet" href="css/style.css?v=20261113v2">
+  <link rel="stylesheet" href="css/components.css?v=20261113v2">
+  <link rel="stylesheet" href="css/quick.css?v=20261113v2">
 </head>
 <body>
 
@@ -290,8 +290,8 @@
                 role="combobox" aria-expanded="false" aria-controls="quickResults" aria-autocomplete="list">
               <button type="button" id="quickSearchClear" class="search-clear-btn" aria-label="Xoá tìm kiếm"></button>
             </div>
-            <button type="button" class="ql-add-custom-btn" id="btnQuickAddCustom" aria-label="Cộng tiền món ngoài menu" title="Cộng tiền món ngoài menu">
-              <span id="quickCustomBtnIcon"></span>
+            <button type="button" class="ql-add-custom-btn" id="btnQuickAddCustom" data-open-custom="1" aria-label="Cộng tiền món ngoài menu" title="Cộng tiền món ngoài menu">
+              <span id="quickCustomBtnIcon">+</span>
               <span>Món ngoài</span>
             </button>
             <button type="button" class="ql-square-btn" id="btnQuickFullMenu" aria-label="Xem toàn bộ thực đơn">
@@ -324,7 +324,7 @@
         <div class="ql-dock">
           <div class="ql-dock-empty" id="quickDockEmpty">
             <span>Chạm món để bắt đầu</span>
-            <button type="button" class="ql-sum-add-btn" id="btnQuickEmptyCustom">+ Cộng tiền món ngoài</button>
+            <button type="button" class="ql-sum-add-btn" id="btnQuickEmptyCustom" data-open-custom="1">+ Cộng tiền món ngoài</button>
           </div>
 
           <div class="ql-summary-row" id="quickSummaryRow" hidden>
@@ -335,7 +335,7 @@
               </span>
               <span class="ql-total" id="quickTotal" aria-live="polite">0đ</span>
             </button>
-            <button type="button" class="ql-sum-add-btn" id="btnQuickDockCustom" title="Cộng thêm tiền món ngoài menu">+ Món ngoài</button>
+            <button type="button" class="ql-sum-add-btn" id="btnQuickDockCustom" data-open-custom="1" title="Cộng thêm tiền món ngoài menu">+ Món ngoài</button>
             <button type="button" class="ql-sum-del-btn" id="btnQuickDelLast" title="Hủy món vừa thêm" aria-label="Xóa món">Xóa món</button>
           </div>
 
@@ -351,7 +351,7 @@
             <div class="ql-cash-input-row" id="quickCashInputRow">
               <label for="quickCustomCashInput" class="ql-cash-label">Khách đưa:</label>
               <input type="text" id="quickCustomCashInput" class="ql-cash-input" inputmode="numeric" pattern="[0-9]*"
-                autocomplete="off" placeholder="Nhập số tiền (vd: 50, 70k, 100000...)">
+                autocomplete="off" placeholder="Nhập tiền (vd: 50, 100k...)">
               <button type="button" class="ql-cash-clear-btn" id="btnQuickCashClear" aria-label="Khách đưa đủ" title="Khách đưa đủ">&times;</button>
             </div>
 
@@ -390,9 +390,9 @@
         <!-- Sheet cong tien / them mon ngoai menu ngay trong Ban nhanh -->
         <div class="ql-sheet" id="quickCustomSheet" hidden>
           <div class="ql-sheet-head">
-            <div class="ql-cart-title">Cộng tiền / Món ngoài menu</div>
+            <div class="ql-cart-title">Cộng thêm tiền / Món ngoài menu</div>
             <button type="button" class="ql-icon-btn" id="btnQuickCustomClose" aria-label="Đóng">
-              <span id="quickCustomCloseIcon"></span>
+              <span id="quickCustomCloseIcon">&times;</span>
             </button>
           </div>
           <div class="ql-custom-body">
@@ -403,15 +403,25 @@
               </div>
               <input type="text" id="quickCustomPriceInput" class="ql-custom-money-input" inputmode="numeric" pattern="[0-9]*"
                 autocomplete="off" placeholder="Nhập số tiền (vd: 15, 20k, 25000...)">
-              <div class="ql-custom-chips" id="quickCustomPriceChips">
-                <button type="button" class="ql-chip" data-price="5000">5k</button>
-                <button type="button" class="ql-chip" data-price="10000">10k</button>
-                <button type="button" class="ql-chip" data-price="15000">15k</button>
-                <button type="button" class="ql-chip" data-price="20000">20k</button>
-                <button type="button" class="ql-chip" data-price="25000">25k</button>
-                <button type="button" class="ql-chip" data-price="30000">30k</button>
-                <button type="button" class="ql-chip" data-price="50000">50k</button>
+              <div class="ql-custom-price-grid" id="quickCustomPriceChips">
+                <button type="button" class="ql-chip" data-price="5000">+5k</button>
+                <button type="button" class="ql-chip" data-price="10000">+10k</button>
+                <button type="button" class="ql-chip" data-price="15000">+15k</button>
+                <button type="button" class="ql-chip" data-price="20000">+20k</button>
+                <button type="button" class="ql-chip" data-price="25000">+25k</button>
+                <button type="button" class="ql-chip" data-price="30000">+30k</button>
+                <button type="button" class="ql-chip" data-price="40000">+40k</button>
+                <button type="button" class="ql-chip" data-price="50000">+50k</button>
               </div>
+            </div>
+
+            <div class="ql-custom-footer">
+              <div class="qty-control ql-custom-qty">
+                <button type="button" class="qty-btn" id="btnQuickCustomQtyMinus">-</button>
+                <span class="qty-val" id="quickCustomQtyVal">1</span>
+                <button type="button" class="qty-btn" id="btnQuickCustomQtyPlus">+</button>
+              </div>
+              <button type="button" class="ql-complete ql-custom-submit" id="btnQuickCustomConfirm">Cộng vào đơn</button>
             </div>
 
             <div class="ql-custom-field">
@@ -426,15 +436,6 @@
                 <button type="button" class="ql-name-chip" data-name="Khăn lạnh">Khăn lạnh</button>
                 <button type="button" class="ql-name-chip" data-name="Thêm topping">Thêm topping</button>
               </div>
-            </div>
-
-            <div class="ql-custom-footer">
-              <div class="qty-control ql-custom-qty">
-                <button type="button" class="qty-btn" id="btnQuickCustomQtyMinus">-</button>
-                <span class="qty-val" id="quickCustomQtyVal">1</span>
-                <button type="button" class="qty-btn" id="btnQuickCustomQtyPlus">+</button>
-              </div>
-              <button type="button" class="ql-complete ql-custom-submit" id="btnQuickCustomConfirm">Cộng vào đơn</button>
             </div>
           </div>
         </div>
@@ -809,11 +810,11 @@
     </div>
   </div>
 
-  <script defer src="js/data.js"></script>
-  <script defer src="js/icons.js"></script>
-  <script defer src="js/quick.js"></script>
-  <script defer src="js/store.js"></script>
-  <script defer src="js/quick-ui.js"></script>
-  <script defer src="js/app.js"></script>
+  <script defer src="js/data.js?v=20261113v2"></script>
+  <script defer src="js/icons.js?v=20261113v2"></script>
+  <script defer src="js/quick.js?v=20261113v2"></script>
+  <script defer src="js/store.js?v=20261113v2"></script>
+  <script defer src="js/quick-ui.js?v=20261113v2"></script>
+  <script defer src="js/app.js?v=20261113v2"></script>
 </body>
 </html>
