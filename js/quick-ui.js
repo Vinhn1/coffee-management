@@ -418,7 +418,6 @@ class QuickRegister {
         this.tender.method = method === "qr" ? "qr" : "cash";
         if (this.tender.method === "qr") {
           this.tender.cash = null;
-          if (d.customCashInput) d.customCashInput.hidden = true;
           this.renderDock();
           this._openQrSheet();
         } else {
@@ -451,15 +450,24 @@ class QuickRegister {
           const val = Number(raw);
           this.tender.cash = val;
           if (d.customCashInput) {
-            d.customCashInput.value = formatShortPrice(val).toUpperCase();
+            d.customCashInput.value = (val).toLocaleString("vi-VN");
           }
         }
         this._renderTenderAndChangeOnly();
       });
     }
 
+    const cashRow = document.getElementById("quickCashInputRow") || (d.cashSection ? d.cashSection.querySelector(".ql-cash-input-row") : null);
+    if (cashRow && d.customCashInput) {
+      cashRow.addEventListener("click", e => {
+        if (e.target.closest("#btnQuickCashClear")) return;
+        d.customCashInput.focus();
+      });
+    }
+
     if (d.cashClearBtn) {
-      d.cashClearBtn.addEventListener("click", () => {
+      d.cashClearBtn.addEventListener("click", e => {
+        e.stopPropagation();
         this.tender.cash = null;
         if (d.customCashInput) {
           d.customCashInput.value = "";
@@ -470,6 +478,12 @@ class QuickRegister {
     }
 
     if (d.customCashInput) {
+      d.customCashInput.addEventListener("focus", () => {
+        if (d.customCashInput.value) {
+          d.customCashInput.select();
+        }
+      });
+
       d.customCashInput.addEventListener("input", () => {
         const val = d.customCashInput.value.trim();
         if (!val) {
@@ -638,7 +652,7 @@ class QuickRegister {
   _resetTender() {
     this.tender.cash = null;
     if (this.dom.customCashInput) {
-      this.dom.customCashInput.hidden = true;
+      this.dom.customCashInput.hidden = false;
       this.dom.customCashInput.value = "";
     }
   }
@@ -997,6 +1011,7 @@ class QuickRegister {
     }
 
     if (d.cashSection) d.cashSection.hidden = !isCash;
+    if (d.customCashInput) d.customCashInput.hidden = false;
     if (d.tenderGroup) d.tenderGroup.hidden = !isCash;
     if (d.actionRow) d.actionRow.hidden = false;
     if (d.changeRow) d.changeRow.hidden = false;
@@ -1081,7 +1096,7 @@ class QuickRegister {
       this.lastInvoice = res.invoice;
       this.tender = { method: "cash", cash: null };
       if (this.dom.customCashInput) {
-        this.dom.customCashInput.hidden = true;
+        this.dom.customCashInput.hidden = false;
         this.dom.customCashInput.value = "";
       }
       this._closeSheets();

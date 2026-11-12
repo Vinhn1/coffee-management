@@ -338,11 +338,11 @@
             <button type="button" class="ql-method-btn" data-method="qr">Chuyển khoản</button>
           </div>
 
-          <!-- Khối tiền mặt: Ưu tiên ô nhập số tiền, các số có sẵn thu nhỏ nằm ở dưới -->
+          <!-- Khoi tien mat: Uu tien o nhap so tien, cac so co san thu nho nam o duoi -->
           <div class="ql-cash-section" id="quickCashSection" hidden>
-            <div class="ql-cash-input-row">
-              <span class="ql-cash-label">Khách đưa:</span>
-              <input type="text" id="quickCustomCashInput" class="ql-cash-input" inputmode="numeric"
+            <div class="ql-cash-input-row" id="quickCashInputRow">
+              <label for="quickCustomCashInput" class="ql-cash-label">Khách đưa:</label>
+              <input type="text" id="quickCustomCashInput" class="ql-cash-input" inputmode="numeric" pattern="[0-9]*"
                 autocomplete="off" placeholder="Đủ tiền hoặc nhập số (vd: 50, 70k, 100k...)">
               <button type="button" class="ql-cash-clear-btn" id="btnQuickCashClear" aria-label="Khách đưa đủ" title="Khách đưa đủ">&times;</button>
             </div>

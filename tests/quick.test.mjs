@@ -483,3 +483,29 @@ test("quick order: order note and per-item notes persist and transfer to invoice
   assert.ok(table2.note.includes("Khach quen ban 2"), "table note must contain transferred quick note");
   assert.equal(store.getQuickNote(), "", "sendToTable must reset quick note");
 });
+
+test("cash input field: markup attributes, styling contract, and parseMoneyInput", async () => {
+  const fs = await import("node:fs");
+  const html = fs.readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const quickUi = fs.readFileSync(new URL("../js/quick-ui.js", import.meta.url), "utf8");
+
+  // Markup checks
+  assert.ok(html.includes('id="quickCashInputRow"'), "must have quickCashInputRow container");
+  assert.ok(html.includes('id="quickCustomCashInput"'), "must have quickCustomCashInput element");
+  assert.ok(html.includes('for="quickCustomCashInput"'), "must have label associated with cash input");
+  assert.ok(html.includes('inputmode="numeric"'), "must specify inputmode numeric for virtual keypad");
+  assert.ok(html.includes('pattern="[0-9]*"'), "must specify pattern for iOS virtual keypad");
+
+  // Anti-regression: customCashInput must never be hidden via .hidden = true
+  assert.ok(!quickUi.includes("customCashInput.hidden = true"), "customCashInput must never be set to hidden = true");
+  assert.ok(quickUi.includes("customCashInput.hidden = false"), "customCashInput must be kept visible when cash is active");
+
+  // Money parser checks
+  assert.equal(parseMoneyInput("50"), 50000);
+  assert.equal(parseMoneyInput("70"), 70000);
+  assert.equal(parseMoneyInput("100"), 100000);
+  assert.equal(parseMoneyInput("50k"), 50000);
+  assert.equal(parseMoneyInput("50.000"), 50000);
+  assert.equal(parseMoneyInput("200000"), 200000);
+  assert.equal(parseMoneyInput(""), null);
+});

@@ -647,6 +647,13 @@ body.quick-mode #viewQuick {
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   height: 36px;
+  cursor: text;
+  box-sizing: border-box;
+}
+
+.ql-cash-input-row:focus-within {
+  border-color: var(--ql-brown-dark, #4b2612);
+  box-shadow: 0 0 0 2px rgba(92, 49, 23, 0.18);
 }
 
 .ql-cash-label {
@@ -654,6 +661,9 @@ body.quick-mode #viewQuick {
   font-weight: 700;
   color: var(--text-muted);
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .ql-cash-input {
@@ -666,6 +676,13 @@ body.quick-mode #viewQuick {
   font-weight: 700;
   color: var(--ql-ink);
   background: transparent;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .ql-cash-input::placeholder {
